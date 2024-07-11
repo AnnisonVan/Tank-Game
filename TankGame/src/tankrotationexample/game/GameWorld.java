@@ -18,6 +18,7 @@ import java.util.Objects;
 public class GameWorld extends JPanel implements Runnable {
 
     private BufferedImage world;
+    private BufferedImage backgroundImage;
     private Tank t1;
     private final Launcher lf;
     private long tick = 0;
@@ -64,6 +65,15 @@ public class GameWorld extends JPanel implements Runnable {
         this.world = new BufferedImage(GameConstants.GAME_SCREEN_WIDTH,
                 GameConstants.GAME_SCREEN_HEIGHT,
                 BufferedImage.TYPE_INT_RGB);
+        // Load background image
+        try {
+            backgroundImage = ImageIO.read(
+                    Objects.requireNonNull(GameWorld.class.getClassLoader().getResource("background/Background.bmp"))
+            );
+        } catch (IOException ex){
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
+        }
 
         BufferedImage t1img = null;
         try {
@@ -89,6 +99,12 @@ public class GameWorld extends JPanel implements Runnable {
     public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         Graphics2D buffer = world.createGraphics();
+
+        // Draw background image
+        if(backgroundImage != null) {
+            buffer.drawImage(backgroundImage, 0, 0, this.getWidth(), this.getHeight(), null);
+        }
+
         this.t1.drawImage(buffer);
         g2.drawImage(world, 0, 0, null);
     }
