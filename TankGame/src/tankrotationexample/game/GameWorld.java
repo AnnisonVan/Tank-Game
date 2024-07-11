@@ -72,7 +72,7 @@ public class GameWorld extends JPanel implements Runnable {
              * current working directory. When running a jar, class loaders will read from within the jar.
              */
             t1img = ImageIO.read(
-                    Objects.requireNonNull(GameWorld.class.getClassLoader().getResource("tank1.png"),
+                    Objects.requireNonNull(GameWorld.class.getClassLoader().getResource("tank/tank1.png"),
                     "Could not find tank1.png")
             );
         } catch (IOException ex) {
