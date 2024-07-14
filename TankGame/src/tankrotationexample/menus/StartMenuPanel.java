@@ -28,6 +28,9 @@ public class StartMenuPanel extends JPanel {
         this.setLayout(null);
 
         JButton start = new JButton("Start");
+        start.setSize(new Dimension(200, 100));
+        start.setFont(new Font("Courier New", Font.BOLD, 24));
+        start.setBounds(150, 300, 150, 50);
         start.addActionListener(actionEvent -> this.lf.setFrame("game"));
 
         JButton exit = new JButton("Exit");
