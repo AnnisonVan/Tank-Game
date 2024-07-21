@@ -1,11 +1,13 @@
 package tankrotationexample;
 
 import tankrotationexample.game.GameWorld;
+import tankrotationexample.game.ResourceManager;
 import tankrotationexample.menus.EndGamePanel;
 import tankrotationexample.menus.StartMenuPanel;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 
 public class Launcher {
 
@@ -96,6 +98,13 @@ public class Launcher {
     }
 
     public static void main(String[] args) {
+        try {
+            ResourceManager.init(); // Initialize resources
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Failed to load resources. Exiting game.");
+            System.exit(1);
+        }
         (new Launcher()).initUIComponents();
     }
 }

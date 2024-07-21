@@ -1,7 +1,6 @@
 package tankrotationexample.game;
 
 import tankrotationexample.GameConstants;
-
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -17,11 +16,12 @@ public class Tank {
     private float angle;
     private int health;
 
-    private final float R = 2;
-    private final float ROTATIONSPEED = 3.0f;
+    private final float R = 3;
+    private final float ROTATIONSPEED = 2.0f;
 
-    private BufferedImage bulletImage;
     private BufferedImage img;
+    private BufferedImage bulletImage;
+    private int lives;
     private boolean UpPressed;
     private boolean DownPressed;
     private boolean RightPressed;
@@ -29,17 +29,19 @@ public class Tank {
     private final List<Bullet> bullets = new ArrayList<>();
 
     private long lastShotTime;
-    private final long SHOOTING_DELAY = 300; // delay in milliseconds
+    private final long FIRE_DELAY = 300; // delay in milliseconds
 
-    Tank(float x, float y, float vx, float vy, float angle, BufferedImage img, BufferedImage bulletImage) {
+    // Update constructor to use ResourceManager
+    Tank(float x, float y, float vx, float vy, float angle, String imageName, String bulletImageName, int lives) {
         this.x = x;
         this.y = y;
         this.vx = vx;
         this.vy = vy;
-        this.img = img;
-        this.bulletImage = bulletImage;
         this.angle = angle;
+        this.img = ResourceManager.getSprite(imageName); // Load tank image
+        this.bulletImage = ResourceManager.getSprite(bulletImageName); // Load bullet image
         this.health = 100;
+        this.lives = lives;
     }
 
     void setX(float x) {
@@ -176,23 +178,30 @@ public class Tank {
         g2d.fillRect((int) x, (int) y - 10, (int) (40 * (health / 100.0)), 5); // Actual health bar
     }
 
+    public Rectangle getBounds() {
+        return new Rectangle((int) x, (int) y, (int) getWidth(), (int) getHeight());
+    }
+
     public void shoot() {
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastShotTime >= SHOOTING_DELAY) {
+        if (currentTime - lastShotTime >= FIRE_DELAY) {
             if (this.bulletImage == null) {
                 System.out.println("Bullet image is null!");
                 return; // Avoid creating a bullet without an image
             }
-            Bullet bullet = new Bullet(this.x, this.y, this.angle, this.bulletImage, this);
+
+            // Create a new Bullet at the end of the barrel
+            Bullet bullet = new Bullet(x, y, this.angle, "bullet", this);
             bullets.add(bullet);
-            lastShotTime = currentTime; // Update the last shot time
+            lastShotTime = currentTime; // Update last shot time
         }
     }
 
-    public void updateBullets(List<Tank> tanks) {
+
+    public void updateBullets(List<Tank> tanks, List<Wall> walls) {
         for (int i = 0; i < bullets.size(); i++) {
             Bullet bullet = bullets.get(i);
-            bullet.updatePosition(); // Update bullet position
+            bullet.updatePosition();
 
             // Check for collision with tanks
             for (Tank tank : tanks) {
@@ -200,7 +209,19 @@ public class Tank {
                     tank.takeDamage(10);
                     bullets.remove(i);
                     i--;
-                    break; // Exit the loop after a collision
+                    break;
+                }
+            }
+
+            // Check for collision with walls
+            for (Wall wall : walls) {
+                if (!wall.isDestroyed() && bullet.collidesWith(wall.getBounds())) {
+                    if (wall.isBreakable()) {
+                        wall.takeDamage();
+                    }
+                    bullets.remove(i);
+                    i--;
+                    break;
                 }
             }
 
@@ -208,7 +229,7 @@ public class Tank {
             if (bullet.getX() < 0 || bullet.getX() > GameConstants.GAME_SCREEN_WIDTH ||
                     bullet.getY() < 0 || bullet.getY() > GameConstants.GAME_SCREEN_HEIGHT) {
                 bullets.remove(i);
-                i--; // Adjust index after removal
+                i--;
             }
         }
     }
@@ -230,6 +251,23 @@ public class Tank {
     }
 
     public List<Bullet> getBullets() {
-        return bullets;
+        return this.bullets;
     }
+
+
+    public void decrementLives(){
+        if(this.lives > 0){
+            this.lives--;
+        }
+    }
+
+    public void setLives(int numLives){
+        this.lives = numLives;
+    }
+
+
+    public int getLives(){
+        return this.lives;
+    }
+
 }

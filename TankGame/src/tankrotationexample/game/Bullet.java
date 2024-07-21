@@ -13,11 +13,12 @@ public class Bullet {
     private BufferedImage img;
     private Tank firingTank;
 
-    public Bullet(float x, float y, float angle, BufferedImage img, Tank firingTank) {
+    // Update constructor to receive the image name instead of the BufferedImage directly
+    public Bullet(float x, float y, float angle, String imageName, Tank firingTank) {
         this.x = x;
         this.y = y;
         this.angle = angle;
-        this.img = img;
+        this.img = ResourceManager.getSprite(imageName); // Load the image using ResourceManager
         this.firingTank = firingTank;
     }
 
@@ -38,6 +39,12 @@ public class Bullet {
         Rectangle tankRect = new Rectangle((int) tank.getX(), (int) tank.getY(), (int) tank.getWidth(), (int) tank.getHeight());
         return bulletRect.intersects(tankRect);
     }
+
+    public boolean collidesWith(Rectangle rect) {
+        Rectangle bulletRect = new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
+        return bulletRect.intersects(rect);
+    }
+
 
     public float getX() {
         return x;
