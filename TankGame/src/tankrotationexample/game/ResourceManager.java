@@ -24,8 +24,8 @@ public class ResourceManager {
         sprites.put("t1", loadSprite("tank/tank1.png"));
         sprites.put("t2", loadSprite("tank/tank2.png"));
         sprites.put("bullet", loadSprite("bullet/Rocket1.gif"));
-        sprites.put("breakablewall", loadSprite("wall/wall2.png"));
-        sprites.put("unbreakablewall", loadSprite("wall/wall1.png"));
+        sprites.put("breakableWall", loadSprite("wall/wall2.png"));
+        sprites.put("unbreakableWall", loadSprite("wall/wall1.png"));
         sprites.put("background", loadSprite("background/Background.bmp"));
     }
 

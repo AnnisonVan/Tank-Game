@@ -9,7 +9,7 @@ public class Bullet {
     private float x;
     private float y;
     private float angle;
-    private float speed = 3;
+    private float speed = 4;
     private BufferedImage img;
     private Tank firingTank;
 

@@ -21,9 +21,10 @@ public class GameWorld extends JPanel implements Runnable {
     private BufferedImage world;
     private BufferedImage backgroundImage;
     private BufferedImage bulletImage;
+    private BufferedImage breakableWallImage;
+    private BufferedImage unbreakableWallImage;
     private Tank t1;
     private Tank t2;
-    private int lives;
     private final Launcher lf;
     private List<Wall> walls; // Added walls list for collision detection
     private long tick = 0;
@@ -66,10 +67,10 @@ public class GameWorld extends JPanel implements Runnable {
      */
     public void resetGame() {
         this.tick = 0;
-        this.t1.setX(300);
-        this.t1.setY(300);
-        this.t2.setX(500);
-        this.t2.setY(500);
+        this.t1.setX(GameConstants.Red_Spawn_X);
+        this.t1.setY(GameConstants.Red_Spawn_Y);
+        this.t2.setX(GameConstants.Blue_Spawn_X);
+        this.t2.setY(GameConstants.Blue_Spawn_y);
         this.t1.setLives(3); // Reset lives for tank 1
         this.t2.setLives(3); // Reset lives for tank 2
     }
@@ -116,8 +117,9 @@ public class GameWorld extends JPanel implements Runnable {
         }
 
         // Create tanks
-        t1 = new Tank(300, 300, 0, 0, 0, "t1", "bullet",3);
-        t2 = new Tank(500, 500, 0, 0, 0, "t2", "bullet",3);
+        t1 = new Tank(GameConstants.Red_Spawn_X, GameConstants.Red_Spawn_Y, 0, 0, 0, "t1", "bullet",3);
+        t2 = new Tank(GameConstants.Blue_Spawn_X, GameConstants.Blue_Spawn_y, 0, 0, 180f, "t2", "bullet",3);
+
 
         // Initialize tank controls
         TankControl tc1 = new TankControl(t1, KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_A, KeyEvent.VK_D, KeyEvent.VK_SPACE);
@@ -126,10 +128,60 @@ public class GameWorld extends JPanel implements Runnable {
         // Add key listeners to the frame
         this.lf.getJf().addKeyListener(tc1);
         this.lf.getJf().addKeyListener(tc2);
+
+        //Initialize walls
+        breakableWallImage = ResourceManager.getSprite("breakableWall");
+        unbreakableWallImage = ResourceManager.getSprite("unbreakableWall");
+        if(breakableWallImage == null) {
+            System.out.println("Could not find breakableWall image.");
+        }
+        if(unbreakableWallImage == null) {
+            System.out.println("Could not find unbreakableWall image.");
+            return;
+        }
+
+        // Initializing walls
+        createWalls();
     }
 
-    public BufferedImage getBulletImage() {
-        return bulletImage;
+    /**
+     * Create walls around the perimeter of the map.
+     */
+    private void createWalls() {
+        // Example dimensions for the perimeter walls
+        int wallWidth = breakableWallImage.getWidth();
+        int wallHeight = breakableWallImage.getHeight();
+
+        int wallOffSet = 30;
+        // Bottom wall
+        for (int x = 0; x < GameConstants.GAME_SCREEN_WIDTH; x += wallWidth) {
+            walls.add(new UnbreakableWall(x, GameConstants.GAME_SCREEN_HEIGHT - wallHeight - wallOffSet, unbreakableWallImage));
+        }
+
+        // Top wall
+        for (int x = 0; x < GameConstants.GAME_SCREEN_WIDTH; x += wallWidth) {
+            walls.add(new UnbreakableWall(x, 0, unbreakableWallImage));
+        }
+
+        // Left wall
+        for (int y = 0; y < GameConstants.GAME_SCREEN_HEIGHT; y += wallHeight) {
+            walls.add(new UnbreakableWall(0, y, unbreakableWallImage));
+        }
+
+        int rightWallOffSet = 10;
+        // Right wall
+        for (int y = 0; y < GameConstants.GAME_SCREEN_HEIGHT; y += wallHeight) {
+            walls.add(new UnbreakableWall(GameConstants.GAME_SCREEN_WIDTH - wallWidth - rightWallOffSet, y, unbreakableWallImage));
+        }
+
+        // Optionally, add breakable walls inside the map as needed
+        // Example: Adding breakable walls in a grid pattern
+        int breakableWallInterval = 100; // Adjust interval as needed
+        for (int x = 100; x < GameConstants.GAME_SCREEN_WIDTH - 200; x += breakableWallInterval) {
+            for (int y = 100; y < GameConstants.GAME_SCREEN_HEIGHT - 200; y += breakableWallInterval) {
+                walls.add(new BreakableWall(x, y, breakableWallImage));
+            }
+        }
     }
 
     @Override
@@ -141,6 +193,11 @@ public class GameWorld extends JPanel implements Runnable {
         // Draw background image
         if (backgroundImage != null) {
             buffer.drawImage(backgroundImage, 0, 0, this.getWidth(), this.getHeight(), null);
+        }
+
+        // Draw walls first
+        for (Wall wall : walls) {
+            wall.draw(buffer);
         }
 
         // Draw tanks
@@ -155,12 +212,8 @@ public class GameWorld extends JPanel implements Runnable {
             bullet.draw(buffer);
         }
 
-        // Draw lives
-        g2.setColor(Color.WHITE);
-        g2.drawString("Tank 1 Lives: " + t1.getLives(), 10, 20);
-        g2.drawString("Tank 2 Lives: " + t2.getLives(), getWidth() - 150, 20);
-
         g2.drawImage(world, 0, 0, null);
     }
+
 
 }

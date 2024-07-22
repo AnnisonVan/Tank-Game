@@ -15,13 +15,14 @@ public class Tank {
     private float vy;
     private float angle;
     private int health;
+    private int lives;
 
-    private final float R = 3;
+    private final float R = 2;
     private final float ROTATIONSPEED = 2.0f;
 
     private BufferedImage img;
     private BufferedImage bulletImage;
-    private int lives;
+
     private boolean UpPressed;
     private boolean DownPressed;
     private boolean RightPressed;
@@ -113,8 +114,18 @@ public class Tank {
     public void takeDamage(int damage) {
         this.health -= damage;
         if (this.health <= 0) {
-            this.health = 0;
+            this.lives--;
+            if(this.lives > 0){
+                resetTank();
+            }else{
+                this.lives = 0;
+            }
         }
+    }
+
+    private void resetTank() {
+        this.health = 100;
+
     }
 
     private void rotateLeft() {
@@ -206,7 +217,7 @@ public class Tank {
             // Check for collision with tanks
             for (Tank tank : tanks) {
                 if (tank != bullet.getFiringTank() && bullet.collidesWith(tank)) {
-                    tank.takeDamage(10);
+                    tank.takeDamage(20);
                     bullets.remove(i);
                     i--;
                     break;
@@ -254,17 +265,9 @@ public class Tank {
         return this.bullets;
     }
 
-
-    public void decrementLives(){
-        if(this.lives > 0){
-            this.lives--;
-        }
-    }
-
     public void setLives(int numLives){
         this.lives = numLives;
     }
-
 
     public int getLives(){
         return this.lives;
