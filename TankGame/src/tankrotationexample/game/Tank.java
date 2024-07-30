@@ -9,6 +9,8 @@ import java.util.List;
 
 public class Tank {
 
+    private GameWorld gameWorld;
+
     private float x;
     private float y;
     private float vx;
@@ -16,12 +18,14 @@ public class Tank {
     private float angle;
     private int health;
     private int lives;
+    private final String type;
 
     private final float R = 2;
     private final float ROTATIONSPEED = 2.0f;
 
     private BufferedImage img;
     private BufferedImage bulletImage;
+    private BufferedImage lifeImage;
 
     private boolean UpPressed;
     private boolean DownPressed;
@@ -33,7 +37,7 @@ public class Tank {
     private final long FIRE_DELAY = 300; // delay in milliseconds
 
     // Update constructor to use ResourceManager
-    Tank(float x, float y, float vx, float vy, float angle, String imageName, String bulletImageName, int lives) {
+    Tank(float x, float y, float vx, float vy, float angle, String imageName, String bulletImageName, int lives, String type, GameWorld gameWorld) {
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -41,8 +45,11 @@ public class Tank {
         this.angle = angle;
         this.img = ResourceManager.getSprite(imageName); // Load tank image
         this.bulletImage = ResourceManager.getSprite(bulletImageName); // Load bullet image
+        this.lifeImage = ResourceManager.getSprite("life");
         this.health = 100;
         this.lives = lives;
+        this.type = type;
+        this.gameWorld = gameWorld;
     }
 
     void setX(float x) {
@@ -107,7 +114,7 @@ public class Tank {
         return this.health;
     }
 
-    private void setHealth(int health) {
+    void setHealth(int health) {
         this.health = health;
     }
 
@@ -116,16 +123,20 @@ public class Tank {
         if (this.health <= 0) {
             this.lives--;
             if(this.lives > 0){
+                gameWorld.resetTankPosition();
                 resetTank();
-            }else{
-                this.lives = 0;
             }
+        }
+    }
+
+    private void resetPosition(){
+        if(gameWorld != null){
+            gameWorld.resetTankPosition();
         }
     }
 
     private void resetTank() {
         this.health = 100;
-
     }
 
     private void rotateLeft() {
@@ -156,14 +167,14 @@ public class Tank {
         if (x < 30) {
             x = 30;
         }
-        if (x >= GameConstants.GAME_SCREEN_WIDTH - 88) {
-            x = GameConstants.GAME_SCREEN_WIDTH - 88;
+        if (x >= GameConstants.GAME_WORLD_WIDTH - 88) {
+            x = GameConstants.GAME_WORLD_WIDTH - 88;
         }
         if (y < 40) {
             y = 40;
         }
-        if (y >= GameConstants.GAME_SCREEN_HEIGHT - 80) {
-            y = GameConstants.GAME_SCREEN_HEIGHT - 80;
+        if (y >= GameConstants.GAME_WORLD_HEIGHT - 80) {
+            y = GameConstants.GAME_WORLD_HEIGHT - 80;
         }
     }
 
@@ -177,8 +188,6 @@ public class Tank {
         rotation.rotate(Math.toRadians(angle), this.img.getWidth() / 2.0, this.img.getHeight() / 2.0);
         Graphics2D g2d = (Graphics2D) g;
         g2d.drawImage(this.img, rotation, null);
-        g2d.setColor(Color.RED);
-        g2d.drawRect((int) x, (int) y, this.img.getWidth(), this.img.getHeight());
 
         // Draw health bar
         g2d.setColor(Color.RED);
@@ -187,6 +196,14 @@ public class Tank {
         // Actual health bar
         g2d.setColor(Color.GREEN); // Health color
         g2d.fillRect((int) x, (int) y - 10, (int) (40 * (health / 100.0)), 5); // Actual health bar
+
+        // Draw lives
+        if (this.lifeImage != null) {
+            for (int i = 0; i < lives; i++) {
+                g2d.drawImage(this.lifeImage, (int) x + i * (this.lifeImage.getWidth() + 2), (int) y - 30, null);
+            }
+        }
+
     }
 
     public Rectangle getBounds() {
@@ -218,18 +235,6 @@ public class Tank {
             for (Tank tank : tanks) {
                 if (tank != bullet.getFiringTank() && bullet.collidesWith(tank)) {
                     tank.takeDamage(20);
-                    bullets.remove(i);
-                    i--;
-                    break;
-                }
-            }
-
-            // Check for collision with walls
-            for (Wall wall : walls) {
-                if (!wall.isDestroyed() && bullet.collidesWith(wall.getBounds())) {
-                    if (wall.isBreakable()) {
-                        wall.takeDamage();
-                    }
                     bullets.remove(i);
                     i--;
                     break;
@@ -271,6 +276,12 @@ public class Tank {
 
     public int getLives(){
         return this.lives;
+    }
+
+    public void setPosition(float x, float y, float angle) {
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
     }
 
 }

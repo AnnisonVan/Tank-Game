@@ -3,14 +3,12 @@ package tankrotationexample.game;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-public class BreakableWall {
+public class Health {
 
+    float x,y;
+    BufferedImage img;
 
-    protected float x;
-    protected float y;
-    protected BufferedImage img;
-
-    public BreakableWall(float x, float y, BufferedImage img) {
+    public Health(float x, float y, BufferedImage img) {
         this.x = x;
         this.y = y;
         this.img = img;
