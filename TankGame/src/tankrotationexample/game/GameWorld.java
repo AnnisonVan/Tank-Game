@@ -141,8 +141,10 @@ public class GameWorld extends JPanel implements Runnable {
                         this.gObjs.add(new Speed(col * 32, row * 32, ResourceManager.getSprite("speed")));
                     } else if (gameItem.equals("11")) {
                         this.t1 = new Tank(col * 32, row * 32, 0, 0, 0, "t1", "bullet", 3, "RED", this);
+                        this.gObjs.add(t1);
                     } else if (gameItem.equals("22")) {
                         this.t2 = new Tank(col * 32, row * 32, 0, 0, 180, "t2", "bullet", 3, "BLUE", this);
+                        this.gObjs.add(t2);
                     }
                 }
                 row++;
@@ -205,6 +207,18 @@ public class GameWorld extends JPanel implements Runnable {
         }
     }
 
+    private void renderFloor(Graphics buffer) {
+        BufferedImage floor = ResourceManager.getSprite("background");
+        for(int i = 0; i < GameConstants.GAME_WORLD_WIDTH; i+=320){
+            for(int j = 0; j < GameConstants.GAME_WORLD_HEIGHT; j+=240){
+                buffer.drawImage(floor, i, j, null);
+            }
+        }
+    }
+
+    private void displayMiniMap(Graphics2D g2) {
+
+    }
 
     @Override
     public void paintComponent(Graphics g) {
@@ -213,9 +227,7 @@ public class GameWorld extends JPanel implements Runnable {
         Graphics2D buffer = world.createGraphics();
 
         // Draw background image
-        if (backgroundImage != null) {
-            buffer.drawImage(backgroundImage, 0, 0, GameConstants.GAME_WORLD_WIDTH, GameConstants.GAME_WORLD_HEIGHT, null);
-        }
+        this.renderFloor(buffer);
 
         for(Object o : gObjs){
             if(o instanceof Wall w){
@@ -240,5 +252,7 @@ public class GameWorld extends JPanel implements Runnable {
         }
 
         g2.drawImage(world, 0, 0, null);
+
+        this.displayMiniMap(g2);
     }
 }

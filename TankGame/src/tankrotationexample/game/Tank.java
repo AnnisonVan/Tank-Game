@@ -187,6 +187,10 @@ public class Tank {
         AffineTransform rotation = AffineTransform.getTranslateInstance(x, y);
         rotation.rotate(Math.toRadians(angle), this.img.getWidth() / 2.0, this.img.getHeight() / 2.0);
         Graphics2D g2d = (Graphics2D) g;
+        if(this.img == null){
+            System.out.println("Tank image is null!");
+            return;
+        }
         g2d.drawImage(this.img, rotation, null);
 
         // Draw health bar
