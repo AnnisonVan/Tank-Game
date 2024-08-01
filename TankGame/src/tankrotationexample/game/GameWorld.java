@@ -7,6 +7,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,14 +23,9 @@ import java.util.Objects;
 public class GameWorld extends JPanel implements Runnable {
 
     private BufferedImage world;
-    private BufferedImage backgroundImage;
-    private BufferedImage bulletImage;
-    private BufferedImage breakableWallImage;
-    private BufferedImage unbreakableWallImage;
     private Tank t1;
     private Tank t2;
     private final Launcher lf;
-    private List<Wall> walls; // Added walls list for collision detection
     private long tick = 0;
     ArrayList gObjs = new ArrayList();
 
@@ -39,7 +35,6 @@ public class GameWorld extends JPanel implements Runnable {
      */
     public GameWorld(Launcher lf) {
         this.lf = lf;
-        this.walls = new ArrayList<>(); // Initialize walls list
     }
 
     @Override
@@ -51,11 +46,9 @@ public class GameWorld extends JPanel implements Runnable {
                 // Update tanks and their bullets
                 if (t1 != null) {
                     t1.update();
-                    t1.updateBullets(Arrays.asList(t1, t2), walls);
                 }
                 if (t2 != null) {
                     t2.update();
-                    t2.updateBullets(Arrays.asList(t1, t2), walls);
                 }
 
 
@@ -122,6 +115,7 @@ public class GameWorld extends JPanel implements Runnable {
                 )
         );
 
+        // Initialize CSV map
         int row = 0;
         try(BufferedReader mapReader = new BufferedReader(isr)){
             while(mapReader.ready()){
@@ -153,21 +147,6 @@ public class GameWorld extends JPanel implements Runnable {
             throw new RuntimeException(e);
         }
 
-
-        // Load background image
-        backgroundImage = ResourceManager.getSprite("background");
-        if (backgroundImage == null) {
-            System.out.println("Could not find background image.");
-            return; // Exit method if background image is not found
-        }
-
-        // Load bullet image
-        bulletImage = ResourceManager.getSprite("bullet");
-        if (bulletImage == null) {
-            System.out.println("Could not find bullet image.");
-            return; // Exit method if bullet image is not found
-        }
-
         // Initialize tanks with resources from ResourceManager
         BufferedImage t1img = ResourceManager.getSprite("t1");
         BufferedImage t2img = ResourceManager.getSprite("t2");
@@ -184,27 +163,6 @@ public class GameWorld extends JPanel implements Runnable {
         // Add key listeners to the frame
         this.lf.getJf().addKeyListener(tc1);
         this.lf.getJf().addKeyListener(tc2);
-
-        //Initialize walls
-        breakableWallImage = ResourceManager.getSprite("breakableWall");
-        unbreakableWallImage = ResourceManager.getSprite("unbreakableWall");
-        if(breakableWallImage == null) {
-            System.out.println("Could not find breakableWall image.");
-        }
-        if(unbreakableWallImage == null) {
-            System.out.println("Could not find unbreakableWall image.");
-            return;
-        }
-
-        // Initialize walls
-        breakableWallImage = ResourceManager.getSprite("breakableWall");
-        unbreakableWallImage = ResourceManager.getSprite("unbreakableWall");
-        if (breakableWallImage == null) {
-            System.out.println("Could not find breakableWall image.");
-        }
-        if (unbreakableWallImage == null) {
-            System.out.println("Could not find unbreakableWall image.");
-        }
     }
 
     private void renderFloor(Graphics buffer) {
@@ -216,8 +174,16 @@ public class GameWorld extends JPanel implements Runnable {
         }
     }
 
-    private void displayMiniMap(Graphics2D g2) {
+    static double scaleFactor = .15;
 
+    private void displayMiniMap(Graphics2D g2) {
+        BufferedImage mm = this.world.getSubimage(0,0,GameConstants.GAME_WORLD_WIDTH, GameConstants.GAME_WORLD_HEIGHT);
+        double mmx = GameConstants.GAME_SCREEN_WIDTH/2f - (GameConstants.GAME_WORLD_WIDTH*scaleFactor)/2;
+        double mmy = GameConstants.GAME_SCREEN_HEIGHT - (GameConstants.GAME_WORLD_HEIGHT*scaleFactor)-39;
+        AffineTransform scaler = AffineTransform.getTranslateInstance(mmx, mmy);
+        scaler.scale(scaleFactor,scaleFactor);
+
+        g2.drawImage(mm, scaler, null);
     }
 
     @Override
@@ -243,16 +209,7 @@ public class GameWorld extends JPanel implements Runnable {
             }
         }
 
-        // Draw bullets
-        for (Bullet bullet : t1.getBullets()) {
-            bullet.draw(buffer);
-        }
-        for (Bullet bullet : t2.getBullets()) {
-            bullet.draw(buffer);
-        }
-
-        g2.drawImage(world, 0, 0, null);
-
         this.displayMiniMap(g2);
+
     }
 }

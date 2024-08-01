@@ -40,11 +40,6 @@ public class Bullet {
         return bulletRect.intersects(tankRect);
     }
 
-    public boolean collidesWith(Rectangle rect) {
-        Rectangle bulletRect = new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
-        return bulletRect.intersects(rect);
-    }
-
 
     public float getX() {
         return x;

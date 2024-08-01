@@ -229,31 +229,6 @@ public class Tank {
         }
     }
 
-
-    public void updateBullets(List<Tank> tanks, List<Wall> walls) {
-        for (int i = 0; i < bullets.size(); i++) {
-            Bullet bullet = bullets.get(i);
-            bullet.updatePosition();
-
-            // Check for collision with tanks
-            for (Tank tank : tanks) {
-                if (tank != bullet.getFiringTank() && bullet.collidesWith(tank)) {
-                    tank.takeDamage(20);
-                    bullets.remove(i);
-                    i--;
-                    break;
-                }
-            }
-
-            // Check if bullet goes offscreen
-            if (bullet.getX() < 0 || bullet.getX() > GameConstants.GAME_SCREEN_WIDTH ||
-                    bullet.getY() < 0 || bullet.getY() > GameConstants.GAME_SCREEN_HEIGHT) {
-                bullets.remove(i);
-                i--;
-            }
-        }
-    }
-
     public float getHeight() {
         return img.getHeight();
     }
@@ -268,10 +243,6 @@ public class Tank {
 
     public float getX() {
         return this.x;
-    }
-
-    public List<Bullet> getBullets() {
-        return this.bullets;
     }
 
     public void setLives(int numLives){
