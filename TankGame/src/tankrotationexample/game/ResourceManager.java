@@ -28,7 +28,7 @@ public class ResourceManager {
         sprites.put("unbreakableWall", loadSprite("wall/wall1.png"));
         sprites.put("background", loadSprite("background/Background.bmp"));
         sprites.put("life", loadSprite("tank/life.png"));
-        sprites.put("map", loadSprite("map/map.csv"));
+        sprites.put("map", loadSprite("map/map(Sheet1).csv"));
         sprites.put("speed", loadSprite("powerup/speedBoost.png"));
         sprites.put("health", loadSprite("powerup/health.png"));
         sprites.put("damage", loadSprite("powerup/damage.png"));

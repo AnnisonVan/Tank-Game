@@ -8,17 +8,16 @@ public class Bullet {
 
     private float x;
     private float y;
-    private float angle;
-    private float speed = 4;
-    private BufferedImage img;
-    private Tank firingTank;
+    private final float angle;
+    private final float speed = 4;
+    private final BufferedImage img;
+    private final Tank firingTank;
 
-    // Update constructor to receive the image name instead of the BufferedImage directly
-    public Bullet(float x, float y, float angle, String imageName, Tank firingTank) {
+    public Bullet(float x, float y, float angle, BufferedImage img, Tank firingTank) {
         this.x = x;
         this.y = y;
         this.angle = angle;
-        this.img = ResourceManager.getSprite(imageName); // Load the image using ResourceManager
+        this.img = img;
         this.firingTank = firingTank;
     }
 
@@ -26,20 +25,6 @@ public class Bullet {
         x += Math.round(speed * Math.cos(Math.toRadians(angle)));
         y += Math.round(speed * Math.sin(Math.toRadians(angle)));
     }
-
-    public void draw(Graphics g) {
-        AffineTransform rotation = AffineTransform.getTranslateInstance(x, y);
-        rotation.rotate(Math.toRadians(angle), this.img.getWidth() / 2.0, this.img.getHeight() / 2.0);
-        Graphics2D g2d = (Graphics2D) g;
-        g2d.drawImage(this.img, rotation, null);
-    }
-
-    public boolean collidesWith(Tank tank) {
-        Rectangle bulletRect = new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
-        Rectangle tankRect = new Rectangle((int) tank.getX(), (int) tank.getY(), (int) tank.getWidth(), (int) tank.getHeight());
-        return bulletRect.intersects(tankRect);
-    }
-
 
     public float getX() {
         return x;
@@ -51,5 +36,12 @@ public class Bullet {
 
     public Tank getFiringTank() {
         return firingTank;
+    }
+
+    public void drawImage(Graphics g) {
+        AffineTransform rotation = AffineTransform.getTranslateInstance(x, y);
+        rotation.rotate(Math.toRadians(angle), img.getWidth() / 2.0, img.getHeight() / 2.0);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.drawImage(img, rotation, null);
     }
 }

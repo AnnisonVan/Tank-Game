@@ -15,8 +15,6 @@ public class TankControl implements KeyListener {
     private final int left;
     private final int shoot;
 
-    private boolean isShooting;
-
     public TankControl(Tank t, int up, int down, int left, int right, int shoot) {
         this.t = t;
         this.up = up;
@@ -33,38 +31,27 @@ public class TankControl implements KeyListener {
     public void keyPressed(KeyEvent ke) {
         int keyPressed = ke.getKeyCode();
 
-        // Check if the shoot key is pressed
-        if (keyPressed == shoot) {
-            this.isShooting = true;
-            this.t.shoot();
-        }
 
-        // Prevent movement if shooting
-        if (!isShooting) {
-            if (keyPressed == up) {
-                this.t.toggleUpPressed();
-            }
-            if (keyPressed == down) {
-                this.t.toggleDownPressed();
-            }
-            if (keyPressed == left) {
-                this.t.toggleLeftPressed();
-            }
-            if (keyPressed == right) {
-                this.t.toggleRightPressed();
-            }
+        if (keyPressed == up) {
+            this.t.toggleUpPressed();
+        }
+        if (keyPressed == down) {
+            this.t.toggleDownPressed();
+        }
+        if (keyPressed == left) {
+            this.t.toggleLeftPressed();
+        }
+        if (keyPressed == right) {
+            this.t.toggleRightPressed();
+        }
+        if (keyPressed == shoot) {
+            this.t.shoot();
         }
     }
 
     @Override
     public void keyReleased(KeyEvent ke) {
         int keyReleased = ke.getKeyCode();
-
-        // Reset shooting state when shoot key is released
-        if (keyReleased == shoot) {
-            this.isShooting = false;
-        }
-
         // Allow movement again after shooting key is released
         if (keyReleased == up) {
             this.t.unToggleUpPressed();

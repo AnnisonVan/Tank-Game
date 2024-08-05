@@ -11,17 +11,20 @@ public class Tank {
 
     private GameWorld gameWorld;
 
+    private float screenX, screenY;
     private float x;
     private float y;
     private float vx;
     private float vy;
     private float angle;
+    private float width;
+    private float height;
     private int health;
     private int lives;
     private final String type;
 
-    private final float R = 2;
-    private final float ROTATIONSPEED = 2.0f;
+    private final float R = 5;
+    private final float ROTATIONSPEED = 3.0f;
 
     private BufferedImage img;
     private BufferedImage bulletImage;
@@ -40,6 +43,8 @@ public class Tank {
     Tank(float x, float y, float vx, float vy, float angle, String imageName, String bulletImageName, int lives, String type, GameWorld gameWorld) {
         this.x = x;
         this.y = y;
+        this.screenX = x;
+        this.screenY = y;
         this.vx = vx;
         this.vy = vy;
         this.angle = angle;
@@ -58,6 +63,14 @@ public class Tank {
 
     void setY(float y) {
         this.y = y;
+    }
+
+    public float getScreenX(){
+        return screenX;
+    }
+
+    public float getScreenY(){
+        return screenY;
     }
 
     void toggleUpPressed() {
@@ -108,6 +121,7 @@ public class Tank {
         if (this.RightPressed) {
             this.rotateRight();
         }
+        centerScreen();
     }
 
     private int getHealth() {
@@ -126,12 +140,6 @@ public class Tank {
                 gameWorld.resetTankPosition();
                 resetTank();
             }
-        }
-    }
-
-    private void resetPosition(){
-        if(gameWorld != null){
-            gameWorld.resetTankPosition();
         }
     }
 
@@ -163,24 +171,91 @@ public class Tank {
         checkBorder();
     }
 
+    private void centerScreen(){
+        this.screenX = this.x - GameConstants.GAME_SCREEN_WIDTH/4f;
+        this.screenY = this.y - GameConstants.GAME_SCREEN_HEIGHT/2f;
+
+        if(this.screenX < 0) screenX = 0;
+        if(this.screenY < 0) screenY = 0;
+
+        if(this.screenX > GameConstants.GAME_WORLD_WIDTH - GameConstants.GAME_SCREEN_WIDTH/2f){
+            this.screenX = GameConstants.GAME_WORLD_WIDTH - GameConstants.GAME_SCREEN_WIDTH/2f;
+        }
+        if(this.screenY > GameConstants.GAME_WORLD_HEIGHT - GameConstants.GAME_SCREEN_HEIGHT){
+            this.screenY = GameConstants.GAME_WORLD_HEIGHT - GameConstants.GAME_SCREEN_HEIGHT+192;
+        }
+    }
+
     private void checkBorder() {
         if (x < 30) {
             x = 30;
         }
-        if (x >= GameConstants.GAME_WORLD_WIDTH - 88) {
-            x = GameConstants.GAME_WORLD_WIDTH - 88;
-        }
         if (y < 40) {
             y = 40;
         }
-        if (y >= GameConstants.GAME_WORLD_HEIGHT - 80) {
-            y = GameConstants.GAME_WORLD_HEIGHT - 80;
+        if (x >= GameConstants.GAME_WORLD_WIDTH - 88) {
+            x = GameConstants.GAME_WORLD_WIDTH - 88;
+        }
+
+        if (y >= GameConstants.GAME_WORLD_HEIGHT - 120) {
+            y = GameConstants.GAME_WORLD_HEIGHT - 120;
         }
     }
 
     @Override
     public String toString() {
         return "x=" + x + ", y=" + y + ", angle=" + angle;
+    }
+
+    public float getY() {
+        return this.y;
+    }
+
+    public float getX() {
+        return this.x;
+    }
+
+    public void setLives(int numLives){
+        this.lives = numLives;
+    }
+
+    public int getLives(){
+        return this.lives;
+    }
+
+    public void setPosition(float x, float y, float angle) {
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+    }
+
+    public void shoot() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastShotTime >= FIRE_DELAY) {
+            if (this.bulletImage == null) {
+                System.out.println("Bullet image is null!");
+                return; // Avoid creating a bullet without an image
+            }
+
+            // Create a new Bullet at the end of the barrel
+            Bullet bullet = new Bullet(x, y, this.angle, this.bulletImage, this);
+            gameWorld.addBullet(bullet); // Add bullet to the game world
+            lastShotTime = currentTime; // Update last shot time
+        }
+    }
+
+    public Rectangle getBounds() {
+        return new Rectangle((int) x, (int) y, (int) width, (int) height);
+    }
+
+    // Collision detection with a BreakableWall
+    public boolean collidesWith(BreakableWall wall) {
+        return this.getBounds().intersects(wall.getBounds());
+    }
+
+    // Collision detection with a NonBreakableWall
+    public boolean collidesWith(Wall wall) {
+        return this.getBounds().intersects(wall.getBounds());
     }
 
     void drawImage(Graphics g) {
@@ -208,55 +283,6 @@ public class Tank {
             }
         }
 
-    }
-
-    public Rectangle getBounds() {
-        return new Rectangle((int) x, (int) y, (int) getWidth(), (int) getHeight());
-    }
-
-    public void shoot() {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastShotTime >= FIRE_DELAY) {
-            if (this.bulletImage == null) {
-                System.out.println("Bullet image is null!");
-                return; // Avoid creating a bullet without an image
-            }
-
-            // Create a new Bullet at the end of the barrel
-            Bullet bullet = new Bullet(x, y, this.angle, "bullet", this);
-            bullets.add(bullet);
-            lastShotTime = currentTime; // Update last shot time
-        }
-    }
-
-    public float getHeight() {
-        return img.getHeight();
-    }
-
-    public float getWidth() {
-        return img.getWidth();
-    }
-
-    public float getY() {
-        return this.y;
-    }
-
-    public float getX() {
-        return this.x;
-    }
-
-    public void setLives(int numLives){
-        this.lives = numLives;
-    }
-
-    public int getLives(){
-        return this.lives;
-    }
-
-    public void setPosition(float x, float y, float angle) {
-        this.x = x;
-        this.y = y;
-        this.angle = angle;
     }
 
 }
