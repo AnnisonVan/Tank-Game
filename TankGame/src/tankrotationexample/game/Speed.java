@@ -2,6 +2,7 @@ package tankrotationexample.game;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 public class Speed {
@@ -12,6 +13,10 @@ public class Speed {
         this.x = x;
         this.y = y;
         this.img = img;
+    }
+
+    public Rectangle2D getHitBox() {
+        return new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
     }
 
     public void drawImage(Graphics g) {

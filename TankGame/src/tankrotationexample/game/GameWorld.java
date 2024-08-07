@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -50,6 +51,9 @@ public class GameWorld extends JPanel implements Runnable {
                 // Update bullets
                 updateBullets();
 
+                // Check for power-up pickups
+                checkPowerUpCollisions();
+
                 // Check if either tank has lost all lives
                 if (t1.getLives() <= 0 || t2.getLives() <= 0) {
                     resetGame();
@@ -77,16 +81,11 @@ public class GameWorld extends JPanel implements Runnable {
 
         this.t1.setHealth(100);
         this.t1.setLives(3);
-        this.t1.setPosition(t1.getX(), t2.getY(), 0);
+        this.t1.setPosition(t1.getSpawnX(), t2.getSpawnY(), 0);
 
         this.t2.setHealth(100);
         this.t2.setLives(3);
-        this.t2.setPosition(t2.getX(), t2.getY(), 180);
-    }
-
-    public void resetTankPosition() {
-        this.t1.setPosition(t1.getX(), t1.getY(), 0);
-        this.t2.setPosition(t2.getX(), t2.getY(), 180);
+        this.t2.setPosition(t2.getSpawnX(), t2.getSpawnY(), 180);
     }
 
     /**
@@ -126,16 +125,20 @@ public class GameWorld extends JPanel implements Runnable {
                     } else if (gameItem.equals("3")) {
                         this.gObjs.add(new BreakableWall(col * 32, row * 32, ResourceManager.getSprite("breakableWall")));
                     } else if (gameItem.equals("4")) {
-                        this.gObjs.add(new BreakableWall(col * 32, row * 32, ResourceManager.getSprite("health")));
+                        this.gObjs.add(new Health(col * 32, row * 32, ResourceManager.getSprite("health")));
                     } else if (gameItem.equals("6")) {
-                        this.gObjs.add(new BreakableWall(col * 32, row * 32, ResourceManager.getSprite("damage")));
+                        this.gObjs.add(new Damage(col * 32, row * 32, ResourceManager.getSprite("damage")));
                     } else if (gameItem.equals("7")) {
                         this.gObjs.add(new Speed(col * 32, row * 32, ResourceManager.getSprite("speed")));
                     } else if (gameItem.equals("11")) {
                         this.t1 = new Tank(col * 32, row * 32, 0, 0, 0, "t1", "bullet", 3, "RED", this);
+                        t1.setSpawnX(col*32);
+                        t1.setSpawnY(row*32);
                         this.gObjs.add(t1);
                     } else if (gameItem.equals("22")) {
                         this.t2 = new Tank(col * 32, row * 32, 0, 0, 180, "t2", "bullet", 3, "BLUE", this);
+                        t2.setSpawnX(col*32);
+                        t2.setSpawnY(row*32);
                         this.gObjs.add(t2);
                     }
                 }
@@ -167,6 +170,36 @@ public class GameWorld extends JPanel implements Runnable {
         for (int i = 0; i < GameConstants.GAME_WORLD_WIDTH; i += 320) {
             for (int j = 0; j < GameConstants.GAME_WORLD_HEIGHT; j += 240) {
                 buffer.drawImage(ResourceManager.getSprite("background"), i, j, null);
+            }
+        }
+    }
+
+    private void checkPowerUpCollisions() {
+        for (Object o : gObjs) {
+            if (o instanceof Health health) {
+                if (t1.getHitBox().intersects(health.getHitBox())) {
+                    t1.increaseHealth(20); // Increase health by 20 or any desired amount
+                    gObjs.remove(health);
+                } else if (t2.getHitBox().intersects(health.getHitBox())) {
+                    t2.increaseHealth(20);
+                    gObjs.remove(health);
+                }
+            } else if (o instanceof Damage damage) {
+                if (t1.getHitBox().intersects(damage.getHitBox())) {
+                    t1.takeDamage(10); // Increase damage by 10 or any desired amount
+                    gObjs.remove(damage);
+                } else if (t2.getHitBox().intersects(damage.getHitBox())) {
+                    t2.takeDamage(10);
+                    gObjs.remove(damage);
+                }
+            } else if (o instanceof Speed speed) {
+                if (t1.getHitBox().intersects(speed.getHitBox())) {
+                    t1.increaseSpeed(1.5f); // Increase speed by a factor of 1.5 or any desired value
+                    gObjs.remove(speed);
+                } else if (t2.getHitBox().intersects(speed.getHitBox())) {
+                    t2.increaseSpeed(1.5f);
+                    gObjs.remove(speed);
+                }
             }
         }
     }
@@ -215,33 +248,39 @@ public class GameWorld extends JPanel implements Runnable {
     private void updateBullets() {
         List<Bullet> bulletsToRemove = new ArrayList<>();
 
-        for (Bullet bullet : bullets) {
+        for (Iterator<Bullet> iterator = bullets.iterator(); iterator.hasNext(); ) {
+            Bullet bullet = iterator.next();
             bullet.updatePosition();
 
             boolean bulletHitSomething = false;
+
+            // Check if the bullet collides with its own tank
+            Tank firingTank = bullet.getFiringTank();
+            if (firingTank != null && bullet.getHitBox().intersects(firingTank.getHitBox())) {
+                continue;
+            }
+
+            // Check for collisions with other tanks
+            for (Object o : gObjs) {
+                if (o instanceof Tank tank && tank != firingTank && bullet.getHitBox().intersects(tank.getHitBox())) {
+                    bulletsToRemove.add(bullet);
+                    bulletHitSomething = true;
+                    bullet.applyDamageToTank(tank); // Apply damage to the tank
+                    break;
+                }
+            }
 
             // Check for collisions with walls and breakable walls
             for (Object o : gObjs) {
                 if (o instanceof Wall wall && bullet.getHitBox().intersects(wall.getHitBox())) {
                     bulletsToRemove.add(bullet);
                     bulletHitSomething = true;
-                    // Handle collision with Wall if needed
                     break;
                 } else if (o instanceof BreakableWall breakableWall && bullet.getHitBox().intersects(breakableWall.getHitBox())) {
                     bulletsToRemove.add(bullet);
                     bulletHitSomething = true;
-                    // Handle collision with BreakableWall
                     gObjs.remove(breakableWall);
                     break;
-                }
-            }
-
-            // Check if the bullet collides with its own tank
-            if (bullet.getFiringTank() != null) {
-                Tank firingTank = bullet.getFiringTank();
-                if (bullet.getHitBox().intersects(firingTank.getHitBox())) {
-                    // Bullet should not collide with its own tank
-                    bulletHitSomething = true;
                 }
             }
 
@@ -258,7 +297,6 @@ public class GameWorld extends JPanel implements Runnable {
             }
         }
 
-        // Remove all bullets that are marked for removal
         bullets.removeAll(bulletsToRemove);
     }
 
@@ -271,27 +309,34 @@ public class GameWorld extends JPanel implements Runnable {
         Graphics2D g2 = (Graphics2D) g;
         Graphics2D buffer = world.createGraphics();
 
+        // Draw black background
+        g2.setColor(Color.BLACK);
+        g2.fillRect(0, 0, getWidth(), getHeight());
+
         // Draw background image
         this.renderFloor(buffer);
 
-        // Draw game objects
-        for (Object o : gObjs) {
-            if (o instanceof Tank tank) {
-                tank.drawImage(buffer);
-            } else if (o instanceof Health h) {
-                h.drawImage(buffer);
-            } else if (o instanceof BreakableWall bw) {
-                bw.drawImage(buffer);
-            } else if (o instanceof Speed speed) {
-                speed.drawImage(buffer);
-            } else if (o instanceof Wall w) {
-                w.drawImage(buffer);
+        synchronized (gObjs) {
+            for (Object o : gObjs) {
+                if (o instanceof Tank tank) {
+                    tank.drawImage(buffer);
+                } else if (o instanceof Health h) {
+                    h.drawImage(buffer);
+                } else if (o instanceof BreakableWall bw) {
+                    bw.drawImage(buffer);
+                } else if (o instanceof Speed speed) {
+                    speed.drawImage(buffer);
+                } else if (o instanceof Wall w) {
+                    w.drawImage(buffer);
+                }
             }
         }
 
         // Draw bullets
-        for (Bullet bullet : bullets) {
-            bullet.drawImage(buffer);
+        synchronized (bullets) {
+            for (Bullet bullet : bullets) {
+                bullet.drawImage(buffer);
+            }
         }
 
         // Display split screen views
@@ -306,4 +351,5 @@ public class GameWorld extends JPanel implements Runnable {
         // Display minimap
         this.displayMiniMap(g2);
     }
+
 }

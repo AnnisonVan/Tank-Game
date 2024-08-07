@@ -5,7 +5,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 public class Bullet {
-
     private float x;
     private float y;
     private final float angle;
@@ -53,7 +52,7 @@ public class Bullet {
         return hitBox.intersects(wall.getHitBox());
     }
 
-    public boolean checkCollision(BreakableWall bWall){
+    public boolean checkCollision(BreakableWall bWall) {
         return hitBox.intersects(bWall.getHitBox());
     }
 
@@ -62,5 +61,14 @@ public class Bullet {
         rotation.rotate(Math.toRadians(angle), img.getWidth() / 2.0, img.getHeight() / 2.0);
         Graphics2D g2d = (Graphics2D) g;
         g2d.drawImage(img, rotation, null);
+    }
+
+    // Method to apply damage
+    public void applyDamageToTank(Tank tank) {
+        if (firingTank.isDamageBoostActive()) {
+            tank.takeDamage(20); // Apply boosted damage
+        } else {
+            tank.takeDamage(10); // Apply normal damage
+        }
     }
 }

@@ -21,14 +21,18 @@ public class Tank {
     private float height;
     private int health;
     private int lives;
+    private int damageBoostCount;
     private final String type;
+    private float spawnX;
+    private float spawnY;
 
-    private final float R = 2;
+    private float R = 2;
     private final float ROTATIONSPEED = 3.0f;
 
     private BufferedImage img;
     private BufferedImage bulletImage;
     private BufferedImage lifeImage;
+
 
     private boolean UpPressed;
     private boolean DownPressed;
@@ -55,6 +59,25 @@ public class Tank {
         this.lives = lives;
         this.type = type;
         this.gameWorld = gameWorld;
+        this.damageBoostCount = 0;
+        this.spawnX = 0;
+        this.spawnY = 0;
+    }
+
+    public float getSpawnX(){
+        return this.spawnX;
+    }
+
+    public float getSpawnY(){
+        return this.spawnY;
+    }
+
+    public void setSpawnX(float x) {
+        this.spawnX = x;
+    }
+
+    public void setSpawnY(float y) {
+        this.spawnY = y;
     }
 
     void setX(float x) {
@@ -132,17 +155,6 @@ public class Tank {
         this.health = health;
     }
 
-    public void takeDamage(int damage) {
-        this.health -= damage;
-        if (this.health <= 0) {
-            this.lives--;
-            if (this.lives > 0) {
-                gameWorld.resetTankPosition();
-                resetTank();
-            }
-        }
-    }
-
     private void resetTank() {
         this.health = 100;
     }
@@ -183,6 +195,10 @@ public class Tank {
         for (Object obj : gameWorld.gObjs) {
             if (obj instanceof Wall wall) {
                 if (tankBounds.intersects(wall.getHitBox())) {
+                    return true;
+                }
+            }else if(obj instanceof BreakableWall bWall){
+                if (tankBounds.intersects(bWall.getHitBox())) {
                     return true;
                 }
             }
@@ -287,6 +303,46 @@ public class Tank {
 
     public Rectangle getHitBox() {
         return new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
+    }
+
+    public void increaseHealth(int i) {
+        this.health += i;
+    }
+
+    public void increaseSpeed(float speed){
+        this.R *= 1.5;
+    }
+
+
+    public void increaseDamageBoost(int count) {
+        this.damageBoostCount = count;
+    }
+
+    public boolean isDamageBoostActive() {
+        return this.damageBoostCount > 0;
+    }
+
+    public void decrementDamageBoostCount() {
+        if (this.damageBoostCount > 0) {
+            this.damageBoostCount--;
+        }
+    }
+
+    public void takeDamage(int amount) {
+        // If the damage boost is active, increase the damage
+        int actualDamage = isDamageBoostActive() ? amount * 2 : amount; // Example: Double the damage if boosted
+        this.health -= actualDamage;
+        if (this.health < 0) {
+            this.lives--;
+            this.health = 100;
+        }else if(this.lives == 0){
+            gameWorld.resetGame();
+        }
+    }
+
+    // Call this method when a bullet is fired
+    public void onBulletFired() {
+        decrementDamageBoostCount();
     }
 
     void drawImage(Graphics g) {
