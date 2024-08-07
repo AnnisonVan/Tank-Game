@@ -23,7 +23,7 @@ public class Tank {
     private int lives;
     private final String type;
 
-    private final float R = 5;
+    private final float R = 2;
     private final float ROTATIONSPEED = 3.0f;
 
     private BufferedImage img;
@@ -37,7 +37,7 @@ public class Tank {
     private final List<Bullet> bullets = new ArrayList<>();
 
     private long lastShotTime;
-    private final long FIRE_DELAY = 300; // delay in milliseconds
+    private final long FIRE_DELAY = 1200; // delay in milliseconds
 
     // Update constructor to use ResourceManager
     Tank(float x, float y, float vx, float vy, float angle, String imageName, String bulletImageName, int lives, String type, GameWorld gameWorld) {
@@ -65,11 +65,11 @@ public class Tank {
         this.y = y;
     }
 
-    public float getScreenX(){
+    public float getScreenX() {
         return screenX;
     }
 
-    public float getScreenY(){
+    public float getScreenY() {
         return screenY;
     }
 
@@ -136,7 +136,7 @@ public class Tank {
         this.health -= damage;
         if (this.health <= 0) {
             this.lives--;
-            if(this.lives > 0){
+            if (this.lives > 0) {
                 gameWorld.resetTankPosition();
                 resetTank();
             }
@@ -156,33 +156,52 @@ public class Tank {
     }
 
     private void moveBackwards() {
-        vx = Math.round(R * Math.cos(Math.toRadians(angle)));
-        vy = Math.round(R * Math.sin(Math.toRadians(angle)));
-        x -= vx;
-        y -= vy;
+        float newX = x - Math.round(R * Math.cos(Math.toRadians(angle)));
+        float newY = y - Math.round(R * Math.sin(Math.toRadians(angle)));
+
+        if (!checkCollision(newX, newY)) {
+            x = newX;
+            y = newY;
+        }
         checkBorder();
     }
 
     private void moveForwards() {
-        vx = Math.round(R * Math.cos(Math.toRadians(angle)));
-        vy = Math.round(R * Math.sin(Math.toRadians(angle)));
-        x += vx;
-        y += vy;
+        float newX = x + Math.round(R * Math.cos(Math.toRadians(angle)));
+        float newY = y + Math.round(R * Math.sin(Math.toRadians(angle)));
+
+        if (!checkCollision(newX, newY)) {
+            x = newX;
+            y = newY;
+        }
         checkBorder();
     }
 
-    private void centerScreen(){
-        this.screenX = this.x - GameConstants.GAME_SCREEN_WIDTH/4f;
-        this.screenY = this.y - GameConstants.GAME_SCREEN_HEIGHT/2f;
+    private boolean checkCollision(float newX, float newY) {
+        Rectangle tankBounds = new Rectangle((int) newX, (int) newY, img.getWidth(), img.getHeight());
 
-        if(this.screenX < 0) screenX = 0;
-        if(this.screenY < 0) screenY = 0;
-
-        if(this.screenX > GameConstants.GAME_WORLD_WIDTH - GameConstants.GAME_SCREEN_WIDTH/2f){
-            this.screenX = GameConstants.GAME_WORLD_WIDTH - GameConstants.GAME_SCREEN_WIDTH/2f;
+        for (Object obj : gameWorld.gObjs) {
+            if (obj instanceof Wall wall) {
+                if (tankBounds.intersects(wall.getHitBox())) {
+                    return true;
+                }
+            }
         }
-        if(this.screenY > GameConstants.GAME_WORLD_HEIGHT - GameConstants.GAME_SCREEN_HEIGHT){
-            this.screenY = GameConstants.GAME_WORLD_HEIGHT - GameConstants.GAME_SCREEN_HEIGHT+192;
+        return false;
+    }
+
+    private void centerScreen() {
+        this.screenX = this.x - GameConstants.GAME_SCREEN_WIDTH / 4f;
+        this.screenY = this.y - GameConstants.GAME_SCREEN_HEIGHT / 2f;
+
+        if (this.screenX < 0) screenX = 0;
+        if (this.screenY < 0) screenY = 0;
+
+        if (this.screenX > GameConstants.GAME_WORLD_WIDTH - GameConstants.GAME_SCREEN_WIDTH / 2f) {
+            this.screenX = GameConstants.GAME_WORLD_WIDTH - GameConstants.GAME_SCREEN_WIDTH / 2f;
+        }
+        if (this.screenY > GameConstants.GAME_WORLD_HEIGHT - GameConstants.GAME_SCREEN_HEIGHT) {
+            this.screenY = GameConstants.GAME_WORLD_HEIGHT - GameConstants.GAME_SCREEN_HEIGHT + 192;
         }
     }
 
@@ -215,11 +234,11 @@ public class Tank {
         return this.x;
     }
 
-    public void setLives(int numLives){
+    public void setLives(int numLives) {
         this.lives = numLives;
     }
 
-    public int getLives(){
+    public int getLives() {
         return this.lives;
     }
 
@@ -244,25 +263,37 @@ public class Tank {
         }
     }
 
+    public int getWidth() {
+        return img.getWidth();
+    }
+
+    public int getHeight() {
+        return img.getHeight();
+    }
+
     public Rectangle getBounds() {
-        return new Rectangle((int) x, (int) y, (int) width, (int) height);
+        return new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
     }
 
     // Collision detection with a BreakableWall
     public boolean collidesWith(BreakableWall wall) {
-        return this.getBounds().intersects(wall.getBounds());
+        return this.getBounds().intersects(wall.getHitBox());
     }
 
     // Collision detection with a NonBreakableWall
     public boolean collidesWith(Wall wall) {
-        return this.getBounds().intersects(wall.getBounds());
+        return this.getBounds().intersects(wall.getHitBox());
+    }
+
+    public Rectangle getHitBox() {
+        return new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
     }
 
     void drawImage(Graphics g) {
         AffineTransform rotation = AffineTransform.getTranslateInstance(x, y);
         rotation.rotate(Math.toRadians(angle), this.img.getWidth() / 2.0, this.img.getHeight() / 2.0);
         Graphics2D g2d = (Graphics2D) g;
-        if(this.img == null){
+        if (this.img == null) {
             System.out.println("Tank image is null!");
             return;
         }

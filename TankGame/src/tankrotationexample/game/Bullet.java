@@ -9,9 +9,10 @@ public class Bullet {
     private float x;
     private float y;
     private final float angle;
-    private final float speed = 4;
+    private final float speed = 12;
     private final BufferedImage img;
     private final Tank firingTank;
+    private final Rectangle hitBox;
 
     public Bullet(float x, float y, float angle, BufferedImage img, Tank firingTank) {
         this.x = x;
@@ -19,11 +20,13 @@ public class Bullet {
         this.angle = angle;
         this.img = img;
         this.firingTank = firingTank;
+        this.hitBox = new Rectangle((int)x, (int)y, img.getWidth(), img.getHeight());
     }
 
     public void updatePosition() {
         x += Math.round(speed * Math.cos(Math.toRadians(angle)));
         y += Math.round(speed * Math.sin(Math.toRadians(angle)));
+        hitBox.setLocation((int)x, (int)y); // Update hitbox position
     }
 
     public float getX() {
@@ -36,6 +39,22 @@ public class Bullet {
 
     public Tank getFiringTank() {
         return firingTank;
+    }
+
+    public Rectangle getHitBox() {
+        return hitBox;
+    }
+
+    public boolean checkCollision(Tank tank) {
+        return hitBox.intersects(tank.getHitBox());
+    }
+
+    public boolean checkCollision(Wall wall) {
+        return hitBox.intersects(wall.getHitBox());
+    }
+
+    public boolean checkCollision(BreakableWall bWall){
+        return hitBox.intersects(bWall.getHitBox());
     }
 
     public void drawImage(Graphics g) {

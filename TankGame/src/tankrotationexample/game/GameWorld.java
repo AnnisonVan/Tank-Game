@@ -13,7 +13,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,9 +29,9 @@ public class GameWorld extends JPanel implements Runnable {
     ArrayList gObjs = new ArrayList();
     private final List<Bullet> bullets = new ArrayList<>();
 
-
     /**
      * Constructs the GameWorld.
+     *
      * @param lf The launcher instance.
      */
     public GameWorld(Launcher lf) {
@@ -85,9 +84,9 @@ public class GameWorld extends JPanel implements Runnable {
         this.t2.setPosition(t2.getX(), t2.getY(), 180);
     }
 
-    public void resetTankPosition(){
-        this.t1.setPosition(t1.getX(),t1.getY(),0);
-        this.t2.setPosition(t2.getX(),t2.getY(),180);
+    public void resetTankPosition() {
+        this.t1.setPosition(t1.getX(), t1.getY(), 0);
+        this.t2.setPosition(t2.getX(), t2.getY(), 180);
     }
 
     /**
@@ -116,8 +115,8 @@ public class GameWorld extends JPanel implements Runnable {
 
         // Initialize CSV map
         int row = 0;
-        try(BufferedReader mapReader = new BufferedReader(isr)){
-            while(mapReader.ready()){
+        try (BufferedReader mapReader = new BufferedReader(isr)) {
+            while (mapReader.ready()) {
                 String line = mapReader.readLine();
                 String[] objs = line.split(",");
                 for (int col = 0; col < objs.length; col++) {
@@ -142,7 +141,7 @@ public class GameWorld extends JPanel implements Runnable {
                 }
                 row++;
             }
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
@@ -165,8 +164,8 @@ public class GameWorld extends JPanel implements Runnable {
     }
 
     private void renderFloor(Graphics buffer) {
-        for(int i = 0; i < GameConstants.GAME_WORLD_WIDTH; i+=320){
-            for(int j = 0; j < GameConstants.GAME_WORLD_HEIGHT; j+=240){
+        for (int i = 0; i < GameConstants.GAME_WORLD_WIDTH; i += 320) {
+            for (int j = 0; j < GameConstants.GAME_WORLD_HEIGHT; j += 240) {
                 buffer.drawImage(ResourceManager.getSprite("background"), i, j, null);
             }
         }
@@ -175,26 +174,35 @@ public class GameWorld extends JPanel implements Runnable {
     private void displaySplitScreen(Graphics2D onScreenPanel) {
         int minimapOriginalHeight = GameConstants.GAME_WORLD_HEIGHT;
         double scaleFactor = 0.10; // As defined earlier
-        int minimapHeight = (int)(minimapOriginalHeight * scaleFactor);
+        int minimapHeight = (int) (minimapOriginalHeight * scaleFactor);
         int padding = 10; // Additional padding above the minimap
 
         int availableHeightForScreens = GameConstants.GAME_SCREEN_HEIGHT - minimapHeight - padding;
 
-        BufferedImage lh = this.world.getSubimage((int)this.t1.getScreenX(), (int)this.t1.getScreenY(), GameConstants.GAME_SCREEN_WIDTH/2, availableHeightForScreens-25);
+        BufferedImage lh = this.world.getSubimage((int) this.t1.getScreenX(), (int) this.t1.getScreenY(), GameConstants.GAME_SCREEN_WIDTH / 2, availableHeightForScreens - 25);
         onScreenPanel.drawImage(lh, 0, 0, null);
 
-        BufferedImage rh = this.world.getSubimage((int)this.t2.getScreenX(), (int)this.t2.getScreenY(), GameConstants.GAME_SCREEN_WIDTH/2, availableHeightForScreens-25);
-        onScreenPanel.drawImage(rh, GameConstants.GAME_SCREEN_WIDTH/2, 0, null);
+        BufferedImage rh = this.world.getSubimage((int) this.t2.getScreenX(), (int) this.t2.getScreenY(), GameConstants.GAME_SCREEN_WIDTH / 2, availableHeightForScreens - 25);
+        onScreenPanel.drawImage(rh, GameConstants.GAME_SCREEN_WIDTH / 2, 0, null);
     }
 
     static double scaleFactor = .10;
 
     private void displayMiniMap(Graphics2D g2) {
-        BufferedImage mm = this.world.getSubimage(0,0,GameConstants.GAME_WORLD_WIDTH, GameConstants.GAME_WORLD_HEIGHT);
-        double mmx = GameConstants.GAME_SCREEN_WIDTH/2f - (GameConstants.GAME_WORLD_WIDTH*scaleFactor)/2;
-        double mmy = GameConstants.GAME_SCREEN_HEIGHT - (GameConstants.GAME_WORLD_HEIGHT*scaleFactor)-35;
-        AffineTransform scaler = AffineTransform.getTranslateInstance(mmx, mmy);
-        scaler.scale(scaleFactor,scaleFactor);
+        BufferedImage mm = this.world.getSubimage(0, 0, GameConstants.GAME_WORLD_WIDTH, GameConstants.GAME_WORLD_HEIGHT);
+        double mmx = GameConstants.GAME_SCREEN_WIDTH / 2f - (GameConstants.GAME_WORLD_WIDTH * scaleFactor) / 2;
+        double mmy = GameConstants.GAME_SCREEN_HEIGHT - (GameConstants.GAME_WORLD_HEIGHT * scaleFactor) - 35;
+
+        // Calculate the width and height of the mini-map after scaling
+        int mmWidth = (int) (GameConstants.GAME_WORLD_WIDTH * scaleFactor);
+        int mmHeight = (int) (GameConstants.GAME_WORLD_HEIGHT * scaleFactor);
+
+        // Draw black background
+        g2.setColor(Color.BLACK);
+        g2.fillRect((int) mmx, (int) mmy, mmWidth, mmHeight);
+
+        AffineTransform scaler = AffineTransform.getTranslateInstance(mmx - 139, mmy);
+        scaler.scale(.2, scaleFactor);
 
         g2.drawImage(mm, scaler, null);
     }
@@ -206,19 +214,56 @@ public class GameWorld extends JPanel implements Runnable {
 
     private void updateBullets() {
         List<Bullet> bulletsToRemove = new ArrayList<>();
+
         for (Bullet bullet : bullets) {
             bullet.updatePosition();
 
-            // Check for collisions or out of bounds later
-            // For now, just remove bullets that go out of bounds
+            boolean bulletHitSomething = false;
+
+            // Check for collisions with walls and breakable walls
+            for (Object o : gObjs) {
+                if (o instanceof Wall wall && bullet.getHitBox().intersects(wall.getHitBox())) {
+                    bulletsToRemove.add(bullet);
+                    bulletHitSomething = true;
+                    // Handle collision with Wall if needed
+                    break;
+                } else if (o instanceof BreakableWall breakableWall && bullet.getHitBox().intersects(breakableWall.getHitBox())) {
+                    bulletsToRemove.add(bullet);
+                    bulletHitSomething = true;
+                    // Handle collision with BreakableWall
+                    gObjs.remove(breakableWall);
+                    break;
+                }
+            }
+
+            // Check if the bullet collides with its own tank
+            if (bullet.getFiringTank() != null) {
+                Tank firingTank = bullet.getFiringTank();
+                if (bullet.getHitBox().intersects(firingTank.getHitBox())) {
+                    // Bullet should not collide with its own tank
+                    bulletHitSomething = true;
+                }
+            }
+
+            // Remove bullets that go out of bounds
             if (bullet.getX() < 0 || bullet.getX() >= GameConstants.GAME_WORLD_WIDTH ||
                     bullet.getY() < 0 || bullet.getY() >= GameConstants.GAME_WORLD_HEIGHT) {
+                bulletsToRemove.add(bullet);
+                bulletHitSomething = true;
+            }
+
+            // If the bullet hit something, mark it for removal
+            if (bulletHitSomething) {
                 bulletsToRemove.add(bullet);
             }
         }
 
+        // Remove all bullets that are marked for removal
         bullets.removeAll(bulletsToRemove);
     }
+
+
+
 
     @Override
     public void paintComponent(Graphics g) {
@@ -261,6 +306,4 @@ public class GameWorld extends JPanel implements Runnable {
         // Display minimap
         this.displayMiniMap(g2);
     }
-
-
 }

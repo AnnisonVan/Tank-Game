@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class BreakableWall {
+
     protected float x;
     protected float y;
     protected BufferedImage img;
@@ -14,7 +15,7 @@ public class BreakableWall {
         this.img = img;
     }
 
-    public Rectangle getBounds() {
+    public Rectangle getHitBox() {
         return new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
     }
 
