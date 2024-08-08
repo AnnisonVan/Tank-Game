@@ -206,6 +206,7 @@ public class Tank {
         return false;
     }
 
+
     private void centerScreen() {
         this.screenX = this.x - GameConstants.GAME_SCREEN_WIDTH / 4f;
         this.screenY = this.y - GameConstants.GAME_SCREEN_HEIGHT / 2f;
@@ -269,10 +270,9 @@ public class Tank {
         if (currentTime - lastShotTime >= FIRE_DELAY) {
             if (this.bulletImage == null) {
                 System.out.println("Bullet image is null!");
-                return; // Avoid creating a bullet without an image
+                return;
             }
 
-            // Create a new Bullet at the end of the barrel
             Bullet bullet = new Bullet(x, y, this.angle, this.bulletImage, this);
             gameWorld.addBullet(bullet); // Add bullet to the game world
             lastShotTime = currentTime; // Update last shot time
@@ -306,7 +306,11 @@ public class Tank {
     }
 
     public void increaseHealth(int i) {
-        this.health += i;
+        if(health >= 90){
+            this.health = 100;
+        }else{
+            this.health += i;
+        }
     }
 
     public void increaseSpeed(float speed){

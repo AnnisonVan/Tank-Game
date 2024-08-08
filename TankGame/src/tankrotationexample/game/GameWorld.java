@@ -167,41 +167,46 @@ public class GameWorld extends JPanel implements Runnable {
     }
 
     private void renderFloor(Graphics buffer) {
-        for (int i = 0; i < GameConstants.GAME_WORLD_WIDTH; i += 320) {
-            for (int j = 0; j < GameConstants.GAME_WORLD_HEIGHT; j += 240) {
+        for (int i = 0; i < GameConstants.GAME_WORLD_WIDTH; i += 1280) {
+            for (int j = 0; j < GameConstants.GAME_WORLD_HEIGHT; j += 1280) {
                 buffer.drawImage(ResourceManager.getSprite("background"), i, j, null);
             }
         }
     }
 
     private void checkPowerUpCollisions() {
+        List<Object> objectsToRemove = new ArrayList<>();
+
         for (Object o : gObjs) {
             if (o instanceof Health health) {
                 if (t1.getHitBox().intersects(health.getHitBox())) {
                     t1.increaseHealth(20); // Increase health by 20 or any desired amount
-                    gObjs.remove(health);
+                    objectsToRemove.add(health);
                 } else if (t2.getHitBox().intersects(health.getHitBox())) {
                     t2.increaseHealth(20);
-                    gObjs.remove(health);
+                    objectsToRemove.add(health);
                 }
             } else if (o instanceof Damage damage) {
                 if (t1.getHitBox().intersects(damage.getHitBox())) {
                     t1.takeDamage(10); // Increase damage by 10 or any desired amount
-                    gObjs.remove(damage);
+                    objectsToRemove.add(damage);
                 } else if (t2.getHitBox().intersects(damage.getHitBox())) {
                     t2.takeDamage(10);
-                    gObjs.remove(damage);
+                    objectsToRemove.add(damage);
                 }
             } else if (o instanceof Speed speed) {
                 if (t1.getHitBox().intersects(speed.getHitBox())) {
                     t1.increaseSpeed(1.5f); // Increase speed by a factor of 1.5 or any desired value
-                    gObjs.remove(speed);
+                    objectsToRemove.add(speed);
                 } else if (t2.getHitBox().intersects(speed.getHitBox())) {
                     t2.increaseSpeed(1.5f);
-                    gObjs.remove(speed);
+                    objectsToRemove.add(speed);
                 }
             }
         }
+
+        // Remove the collected objects after iteration
+        gObjs.removeAll(objectsToRemove);
     }
 
     private void displaySplitScreen(Graphics2D onScreenPanel) {
@@ -300,9 +305,6 @@ public class GameWorld extends JPanel implements Runnable {
         bullets.removeAll(bulletsToRemove);
     }
 
-
-
-
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -328,6 +330,8 @@ public class GameWorld extends JPanel implements Runnable {
                     speed.drawImage(buffer);
                 } else if (o instanceof Wall w) {
                     w.drawImage(buffer);
+                } else if (o instanceof Damage d){
+                    d.drawImage(buffer);
                 }
             }
         }
