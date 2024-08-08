@@ -2,6 +2,7 @@ package tankrotationexample;
 
 import tankrotationexample.game.GameWorld;
 import tankrotationexample.game.ResourceManager;
+import tankrotationexample.game.Sound;
 import tankrotationexample.menus.EndGamePanel;
 import tankrotationexample.menus.StartMenuPanel;
 import javax.swing.*;
@@ -76,7 +77,7 @@ public class Launcher {
                     this.jf.setSize(GameConstants.START_MENU_SCREEN_WIDTH, GameConstants.START_MENU_SCREEN_HEIGHT);
             case "game" -> {
                 // set the size of the jFrame to the expected size for the game panel
-                this.jf.setSize(GameConstants.GAME_SCREEN_WIDTH, GameConstants.GAME_SCREEN_HEIGHT);
+                this.jf.setSize(GameConstants.GAME_SCREEN_WIDTH+25, GameConstants.GAME_SCREEN_HEIGHT);
                 //start a new thread for the game to run. This will ensure our JFrame is responsive and
                 // not stuck executing the game loop.
                 (new Thread(this.gamePanel)).start();
@@ -106,5 +107,8 @@ public class Launcher {
             System.exit(1);
         }
         (new Launcher()).initUIComponents();
+        Sound bg = ResourceManager.getSound("bg");
+        //bg.loopContinuously();
+        //bg.play();
     }
 }

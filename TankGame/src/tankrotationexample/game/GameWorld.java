@@ -252,6 +252,7 @@ public class GameWorld extends JPanel implements Runnable {
 
     private void updateBullets() {
         List<Bullet> bulletsToRemove = new ArrayList<>();
+        Sound explosion = ResourceManager.getSound("explosion");
 
         for (Iterator<Bullet> iterator = bullets.iterator(); iterator.hasNext(); ) {
             Bullet bullet = iterator.next();
@@ -271,6 +272,7 @@ public class GameWorld extends JPanel implements Runnable {
                     bulletsToRemove.add(bullet);
                     bulletHitSomething = true;
                     bullet.applyDamageToTank(tank); // Apply damage to the tank
+                    explosion.play();
                     break;
                 }
             }
@@ -280,11 +282,13 @@ public class GameWorld extends JPanel implements Runnable {
                 if (o instanceof Wall wall && bullet.getHitBox().intersects(wall.getHitBox())) {
                     bulletsToRemove.add(bullet);
                     bulletHitSomething = true;
+                    explosion.play();
                     break;
                 } else if (o instanceof BreakableWall breakableWall && bullet.getHitBox().intersects(breakableWall.getHitBox())) {
                     bulletsToRemove.add(bullet);
                     bulletHitSomething = true;
                     gObjs.remove(breakableWall);
+                    explosion.play();
                     break;
                 }
             }

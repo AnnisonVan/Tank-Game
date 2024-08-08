@@ -276,6 +276,7 @@ public class Tank {
             Bullet bullet = new Bullet(x, y, this.angle, this.bulletImage, this);
             gameWorld.addBullet(bullet); // Add bullet to the game world
             lastShotTime = currentTime; // Update last shot time
+            ResourceManager.getSound("shooting").play();
         }
     }
 
@@ -333,12 +334,15 @@ public class Tank {
     }
 
     public void takeDamage(int amount) {
+        Sound explosion = ResourceManager.getSound("lifeLost");
         // If the damage boost is active, increase the damage
         int actualDamage = isDamageBoostActive() ? amount * 2 : amount; // Example: Double the damage if boosted
         this.health -= actualDamage;
         if (this.health < 0) {
             this.lives--;
+            explosion.play();
             this.health = 100;
+
         }else if(this.lives == 0){
             gameWorld.resetGame();
         }

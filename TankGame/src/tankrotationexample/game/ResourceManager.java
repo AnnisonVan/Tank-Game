@@ -15,9 +15,13 @@ public class ResourceManager {
     private final static Map<String, List<BufferedImage>> animations = new HashMap<>();
 
     public static void init() throws IOException {
-        initSprites();
-        initSounds();
-        initAnimations();
+        try {
+            initSprites();
+            loadSounds();
+            initAnimations();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void initSprites() throws IOException {
@@ -34,6 +38,15 @@ public class ResourceManager {
         sprites.put("damage", loadSprite("powerup/damage.png"));
     }
 
+    private static BufferedImage loadSprite(String path) throws IOException {
+        return ImageIO.read(
+                Objects.requireNonNull(
+                        ResourceManager.class.getClassLoader().getResource(path),
+                        "Resource %s was not found".formatted(path)
+                )
+        );
+    }
+
     private static Sound loadSound(String path) throws UnsupportedAudioFileException,IOException, LineUnavailableException {
         AudioInputStream ais = AudioSystem.getAudioInputStream(
                 Objects.requireNonNull(
@@ -48,20 +61,19 @@ public class ResourceManager {
         return s;
     }
 
-    private static BufferedImage loadSprite(String path) throws IOException {
-        return ImageIO.read(
-                Objects.requireNonNull(
-                        ResourceManager.class.getClassLoader().getResource(path),
-                        "Resource %s was not found".formatted(path)
-                )
-        );
+    public static void loadSounds() {
+        try {
+            ResourceManager.sounds.put("bg", loadSound("music/Music.mid"));
+            ResourceManager.sounds.put("bullet_collide", loadSound("sounds/bullet.wav"));
+            ResourceManager.sounds.put("pickup", loadSound("sounds/pickup.wav"));
+            ResourceManager.sounds.put("shooting", loadSound("sounds/shotfiring.wav"));
+            ResourceManager.sounds.put("explosion", loadSound("sounds/explosion.wav"));
+            ResourceManager.sounds.put("lifeLost", loadSound("Explosion_large.wav"));
+        } catch (IOException | UnsupportedAudioFileException | LineUnavailableException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private static void initSounds() throws IOException {
-        // Initialize sounds
-        ResourceManager.
-        loadSound(ResourceManager);
-    }
 
     private static void initAnimations() throws IOException {
         // Initialize animations
