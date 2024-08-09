@@ -14,9 +14,9 @@ public class ResourceManager {
         put("bullethit", 24);
         put("bulletshoot", 23);
         put("powerpick",31);
-        put("explosion_lg", 7);
         put("rocketflame",16);
         put("rockethit",32);
+        put("puffsmoke", 31);
     }};
 
     public static void init() throws IOException {

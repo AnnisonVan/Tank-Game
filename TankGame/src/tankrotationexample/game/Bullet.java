@@ -12,6 +12,7 @@ public class Bullet {
     private final BufferedImage img;
     private final Tank firingTank;
     private final Rectangle hitBox;
+    private int damage;
 
     public Bullet(float x, float y, float angle, BufferedImage img, Tank firingTank) {
         this.x = x;
@@ -20,6 +21,7 @@ public class Bullet {
         this.img = img;
         this.firingTank = firingTank;
         this.hitBox = new Rectangle((int)x, (int)y, img.getWidth(), img.getHeight());
+        this.damage = 30;
     }
 
     public void updatePosition() {
@@ -44,18 +46,6 @@ public class Bullet {
         return hitBox;
     }
 
-    public boolean checkCollision(Tank tank) {
-        return hitBox.intersects(tank.getHitBox());
-    }
-
-    public boolean checkCollision(Wall wall) {
-        return hitBox.intersects(wall.getHitBox());
-    }
-
-    public boolean checkCollision(BreakableWall bWall) {
-        return hitBox.intersects(bWall.getHitBox());
-    }
-
     public void drawImage(Graphics g) {
         AffineTransform rotation = AffineTransform.getTranslateInstance(x, y);
         rotation.rotate(Math.toRadians(angle), img.getWidth() / 2.0, img.getHeight() / 2.0);
@@ -65,10 +55,6 @@ public class Bullet {
 
     // Method to apply damage
     public void applyDamageToTank(Tank tank) {
-        if (firingTank.isDamageBoostActive()) {
-            tank.takeDamage(50); // Apply boosted damage
-        } else {
-            tank.takeDamage(30); // Apply normal damage
-        }
+            tank.takeDamage(this.damage);
     }
 }

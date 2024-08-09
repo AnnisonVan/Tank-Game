@@ -17,11 +17,9 @@ public class Tank {
     private float vx;
     private float vy;
     private float angle;
-    private float width;
-    private float height;
     private int health;
     private int lives;
-    private int damageBoostCount;
+    private int damage;
     private final String type;
     private float spawnX;
     private float spawnY;
@@ -43,7 +41,6 @@ public class Tank {
     private long lastShotTime;
     private final long FIRE_DELAY = 1200; // delay in milliseconds
 
-    // Update constructor to use ResourceManager
     Tank(float x, float y, float vx, float vy, float angle, String imageName, String bulletImageName, int lives, String type, GameWorld gameWorld) {
         this.x = x;
         this.y = y;
@@ -52,14 +49,14 @@ public class Tank {
         this.vx = vx;
         this.vy = vy;
         this.angle = angle;
-        this.img = ResourceManager.getSprite(imageName); // Load tank image
-        this.bulletImage = ResourceManager.getSprite(bulletImageName); // Load bullet image
+        this.img = ResourceManager.getSprite(imageName);
+        this.bulletImage = ResourceManager.getSprite(bulletImageName);
         this.lifeImage = ResourceManager.getSprite("life");
         this.health = 100;
-        this.lives = lives;
+        this.lives = 3;
         this.type = type;
         this.gameWorld = gameWorld;
-        this.damageBoostCount = 0;
+        this.damage = 30;
         this.spawnX = 0;
         this.spawnY = 0;
     }
@@ -273,33 +270,20 @@ public class Tank {
                 return;
             }
 
-            Bullet bullet = new Bullet(x, y, this.angle, this.bulletImage, this);
-            gameWorld.addBullet(bullet); // Add bullet to the game world
+            // Calculate the position to start the bullet
+            float bulletX = x + (float) Math.cos(Math.toRadians(angle)) * img.getWidth() / 2;
+            float bulletY = y + (float) Math.sin(Math.toRadians(angle)) * img.getHeight() / 2;
+
+            // Add bullet to the game world
+            Bullet bullet = new Bullet(bulletX, bulletY, this.angle, this.bulletImage, this);
+            gameWorld.addBullet(bullet);
             lastShotTime = currentTime; // Update last shot time
             ResourceManager.getSound("shooting").play();
+
+            // Add puff smoke animation at the location where the bullet is fired
+            gameWorld.anims.add(new Animation(bulletX, bulletY, ResourceManager.getAnim("puffsmoke")));
+
         }
-    }
-
-    public int getWidth() {
-        return img.getWidth();
-    }
-
-    public int getHeight() {
-        return img.getHeight();
-    }
-
-    public Rectangle getBounds() {
-        return new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
-    }
-
-    // Collision detection with a BreakableWall
-    public boolean collidesWith(BreakableWall wall) {
-        return this.getBounds().intersects(wall.getHitBox());
-    }
-
-    // Collision detection with a NonBreakableWall
-    public boolean collidesWith(Wall wall) {
-        return this.getBounds().intersects(wall.getHitBox());
     }
 
     public Rectangle getHitBox() {
@@ -315,42 +299,24 @@ public class Tank {
     }
 
     public void increaseSpeed(float speed){
-        this.R *= 1.5;
+        this.R *= speed;
     }
 
-
-    public void increaseDamageBoost(int count) {
-        this.damageBoostCount = count;
+    public void increaseDamageBoost(int damage) {
+        this.damage += damage;
     }
 
-    public boolean isDamageBoostActive() {
-        return this.damageBoostCount > 0;
-    }
-
-    public void decrementDamageBoostCount() {
-        if (this.damageBoostCount > 0) {
-            this.damageBoostCount--;
-        }
-    }
-
-    public void takeDamage(int amount) {
+    public void takeDamage(int damage) {
         Sound explosion = ResourceManager.getSound("lifeLost");
-        // If the damage boost is active, increase the damage
-        int actualDamage = isDamageBoostActive() ? amount * 2 : amount; // Example: Double the damage if boosted
-        this.health -= actualDamage;
-        if (this.health < 0) {
+        this.health -= this.damage;
+        if (this.health <= 0) {
             this.lives--;
             explosion.play();
             this.health = 100;
-
+            gameWorld.resetPosition();
         }else if(this.lives == 0){
             gameWorld.resetGame();
         }
-    }
-
-    // Call this method when a bullet is fired
-    public void onBulletFired() {
-        decrementDamageBoostCount();
     }
 
     void drawImage(Graphics g) {

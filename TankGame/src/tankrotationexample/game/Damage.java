@@ -18,6 +18,22 @@ public class Damage {
         return new Rectangle((int) x, (int) y, img.getWidth(), img.getHeight());
     }
 
+    public float getX() {
+        return x;
+    }
+
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
+    public void setY(float y) {
+        this.y = y;
+    }
+
     public void drawImage(Graphics g) {
         g.drawImage(img, (int) x, (int) y, null);
     }

@@ -2,6 +2,7 @@ package tankrotationexample.game;
 
 import tankrotationexample.GameConstants;
 import tankrotationexample.Launcher;
+import tankrotationexample.menus.EndGamePanel;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -44,13 +45,14 @@ public class GameWorld extends JPanel implements Runnable {
     public void run() {
         Sound bg = ResourceManager.getSound("bg");
         bg.stop();
+        this.anims.add(new Animation(100, 100, ResourceManager.getAnim("puffsmoke")));
         try {
             while (true) {
                 this.tick++;
 
-                for (int i = 0; i < this.anims.size(); i++) {
-                    this.anims.get(i).update();
-                }
+                // Update all animations
+                updateAnimations();
+
                 // Update tanks and their bullets
                 t1.update();
                 t2.update();
@@ -63,8 +65,18 @@ public class GameWorld extends JPanel implements Runnable {
 
                 // Check if either tank has lost all lives
                 if (t1.getLives() <= 0 || t2.getLives() <= 0) {
-                    resetGame();
-                    this.lf.setFrame("end");
+                    String winnerText;
+                    if (t1.getLives() > 0) {
+                        winnerText = "Player One Wins!";
+                    } else if (t2.getLives() > 0) {
+                        winnerText = "Player Two Wins!";
+                    } else {
+                        winnerText = "It's a Draw!";
+                    }
+
+                    // Set the winner text in the EndGamePanel
+                    lf.getEndGamePanel().setWinnerText(winnerText);  // Call method in Launcher to get EndGamePanel
+                    this.lf.setFrame("end");  // Switch to the end screen
                     return;
                 }
 
@@ -75,30 +87,38 @@ public class GameWorld extends JPanel implements Runnable {
                 Thread.sleep(1000 / 144);
             }
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // Restore interrupt status
+            Thread.currentThread().interrupt();
             System.out.println("Game loop interrupted: " + e.getMessage());
         }
     }
 
-    /**
-     * Reset game to its initial state.
-     */
+
+
     public void resetGame() {
         this.tick = 0;
 
+        // Clear existing game objects like bullets and animations
+        bullets.clear();
+        anims.clear();
+        gObjs.clear();
+
+        // Reset tank positions and states
         this.t1.setHealth(100);
         this.t1.setLives(3);
-        this.t1.setPosition(t1.getSpawnX(), t2.getSpawnY(), 0);
+        this.t1.setPosition(t1.getSpawnX(), t1.getSpawnY(), 0);  // Reset to original spawn position
 
         this.t2.setHealth(100);
         this.t2.setLives(3);
-        this.t2.setPosition(t2.getSpawnX(), t2.getSpawnY(), 180);
+        this.t2.setPosition(t2.getSpawnX(), t2.getSpawnY(), 180);  // Reset to original spawn position
+
+        // Reinitialize the game objects (like walls, power-ups, etc.)
+        InitializeGame();
+
+        bullets.clear();
     }
 
-    /**
-     * Load all resources for the game. Set all game objects to their
-     * initial state as well.
-     */
+
+
     public void InitializeGame() {
         this.world = new BufferedImage(GameConstants.GAME_WORLD_WIDTH,
                 GameConstants.GAME_WORLD_HEIGHT,
@@ -132,11 +152,20 @@ public class GameWorld extends JPanel implements Runnable {
                     } else if (gameItem.equals("3")) {
                         this.gObjs.add(new BreakableWall(col * 32, row * 32, ResourceManager.getSprite("breakableWall")));
                     } else if (gameItem.equals("4")) {
-                        this.gObjs.add(new Health(col * 32, row * 32, ResourceManager.getSprite("health")));
+                        Health health = (new Health(col * 32, row * 32, ResourceManager.getSprite("health")));
+                        health.setX(col*32);
+                        health.setY(row*32);
+                        this.gObjs.add(health);
                     } else if (gameItem.equals("6")) {
-                        this.gObjs.add(new Damage(col * 32, row * 32, ResourceManager.getSprite("damage")));
+                        Damage dmg = (new Damage(col * 32, row * 32, ResourceManager.getSprite("damage")));
+                        dmg.setX(col*32);
+                        dmg.setY(row*32);
+                        this.gObjs.add(dmg);
                     } else if (gameItem.equals("7")) {
-                        this.gObjs.add(new Speed(col * 32, row * 32, ResourceManager.getSprite("speed")));
+                        Speed speed = (new Speed(col * 32, row * 32, ResourceManager.getSprite("speed")));
+                        speed.setX(col*32);
+                        speed.setY(row*32);
+                        this.gObjs.add(speed);
                     } else if (gameItem.equals("11")) {
                         this.t1 = new Tank(col * 32, row * 32, 0, 0, 0, "t1", "bullet", 3, "RED", this);
                         t1.setSpawnX(col*32);
@@ -183,31 +212,48 @@ public class GameWorld extends JPanel implements Runnable {
 
     private void checkPowerUpCollisions() {
         List<Object> objectsToRemove = new ArrayList<>();
+        Sound sound;
 
         for (Object o : gObjs) {
             if (o instanceof Health health) {
+                sound = ResourceManager.getSound("pickup");
                 if (t1.getHitBox().intersects(health.getHitBox())) {
                     t1.increaseHealth(20); // Increase health by 20 or any desired amount
                     objectsToRemove.add(health);
+                    sound.play();
+                    anims.add(new Animation(health.getX()+10, health.getY(), ResourceManager.getAnim("powerpick")));
                 } else if (t2.getHitBox().intersects(health.getHitBox())) {
                     t2.increaseHealth(20);
                     objectsToRemove.add(health);
+                    sound.play();
+                    anims.add(new Animation(health.getX()+10, health.getY(), ResourceManager.getAnim("powerpick")));
                 }
             } else if (o instanceof Damage damage) {
+                sound = ResourceManager.getSound("pickup");
                 if (t1.getHitBox().intersects(damage.getHitBox())) {
-                    t1.takeDamage(10); // Increase damage by 10 or any desired amount
+                    t1.increaseDamageBoost(30);
+                    // Add damage to Tank
                     objectsToRemove.add(damage);
+                    sound.play();
+                    anims.add(new Animation(damage.getX()+10, damage.getY(), ResourceManager.getAnim("powerpick")));
                 } else if (t2.getHitBox().intersects(damage.getHitBox())) {
-                    t2.takeDamage(10);
+                    t2.increaseDamageBoost(30);
                     objectsToRemove.add(damage);
+                    sound.play();
+                    anims.add(new Animation(damage.getX()+10, damage.getY(), ResourceManager.getAnim("powerpick")));
                 }
             } else if (o instanceof Speed speed) {
+                sound = ResourceManager.getSound("pickup");
                 if (t1.getHitBox().intersects(speed.getHitBox())) {
-                    t1.increaseSpeed(1.5f); // Increase speed by a factor of 1.5 or any desired value
+                    t1.increaseSpeed(1.5f);
                     objectsToRemove.add(speed);
+                    sound.play();
+                    anims.add(new Animation(speed.getX()+10, speed.getY(), ResourceManager.getAnim("powerpick")));
                 } else if (t2.getHitBox().intersects(speed.getHitBox())) {
                     t2.increaseSpeed(1.5f);
                     objectsToRemove.add(speed);
+                    sound.play();
+                    anims.add(new Animation(speed.getX()+10, speed.getY(), ResourceManager.getAnim("powerpick")));
                 }
             }
         }
@@ -255,7 +301,12 @@ public class GameWorld extends JPanel implements Runnable {
     // Method to add a bullet to the list
     public void addBullet(Bullet bullet) {
         bullets.add(bullet);
+
+        // Trigger the bullet shoot animation at the location of the shot
+        List<BufferedImage> bulletShootFrames = ResourceManager.getAnim("bulletshoot");
+
     }
+
 
     private void updateBullets() {
         List<Bullet> bulletsToRemove = new ArrayList<>();
@@ -280,6 +331,8 @@ public class GameWorld extends JPanel implements Runnable {
                     bulletHitSomething = true;
                     bullet.applyDamageToTank(tank); // Apply damage to the tank
                     explosion.play();
+                    // Trigger explosion animation
+                    triggerExplosionAnimation(bullet.getX(), bullet.getY());
                     break;
                 }
             }
@@ -290,12 +343,18 @@ public class GameWorld extends JPanel implements Runnable {
                     bulletsToRemove.add(bullet);
                     bulletHitSomething = true;
                     explosion.play();
+
+                    // Trigger explosion animation
+                    triggerExplosionAnimation(bullet.getX(), bullet.getY());
                     break;
                 } else if (o instanceof BreakableWall breakableWall && bullet.getHitBox().intersects(breakableWall.getHitBox())) {
                     bulletsToRemove.add(bullet);
                     bulletHitSomething = true;
                     gObjs.remove(breakableWall);
                     explosion.play();
+
+                    // Trigger explosion animation
+                    triggerExplosionAnimation(bullet.getX(), bullet.getY());
                     break;
                 }
             }
@@ -316,6 +375,10 @@ public class GameWorld extends JPanel implements Runnable {
         bullets.removeAll(bulletsToRemove);
     }
 
+    private void triggerExplosionAnimation(float x, float y) {
+        anims.add(new Animation(x, y, ResourceManager.getAnim("rockethit")));
+    }
+
     public void renderFrame(){
         Graphics2D buffer = (Graphics2D) world.getGraphics();
         for (int i = 0; i < this.anims.size(); i++) {
@@ -323,6 +386,22 @@ public class GameWorld extends JPanel implements Runnable {
         }
     }
 
+    private void updateAnimations() {
+        for (Iterator<Animation> iterator = anims.iterator(); iterator.hasNext(); ) {
+            Animation animation = iterator.next();
+            animation.update();
+            if (!animation.isRunning()) {
+                iterator.remove(); // Remove animation when it's no longer running
+            }
+        }
+    }
+
+    public void resetPosition() {
+        t1.setX(t1.getSpawnX());
+        t1.setY(t1.getSpawnY());
+        t2.setX(t2.getSpawnX());
+        t2.setY(t2.getSpawnY());
+    }
 
     @Override
     public void paintComponent(Graphics g) {
@@ -337,13 +416,12 @@ public class GameWorld extends JPanel implements Runnable {
         // Draw background image
         this.renderFloor(buffer);
 
-        // Create a copy of gObjs to avoid ConcurrentModificationException
+        // Draw game objects
         List<Object> gObjsCopy;
         synchronized (gObjs) {
             gObjsCopy = new ArrayList<>(gObjs);
         }
 
-        // Iterate over the copy to draw objects
         for (Object o : gObjsCopy) {
             if (o instanceof Tank tank) {
                 tank.drawImage(buffer);
@@ -355,7 +433,7 @@ public class GameWorld extends JPanel implements Runnable {
                 speed.drawImage(buffer);
             } else if (o instanceof Wall w) {
                 w.drawImage(buffer);
-            } else if (o instanceof Damage d){
+            } else if (o instanceof Damage d) {
                 d.drawImage(buffer);
             }
         }
@@ -367,11 +445,14 @@ public class GameWorld extends JPanel implements Runnable {
             }
         }
 
+        // Render animations using renderFrame()
+        renderFrame();  // Call this method to ensure animations are rendered
+
         // Display split screen views
         this.displaySplitScreen(g2);
 
         // Draw black line between split screens
-        int lineWidth = 5; // Adjust width of the line as needed
+        int lineWidth = 5;
         int lineX = GameConstants.GAME_SCREEN_WIDTH / 2 - lineWidth / 2;
         g2.setColor(Color.BLACK);
         g2.fillRect(lineX, 0, lineWidth, GameConstants.GAME_SCREEN_HEIGHT);
@@ -379,6 +460,5 @@ public class GameWorld extends JPanel implements Runnable {
         // Display minimap
         this.displayMiniMap(g2);
     }
-
 
 }
