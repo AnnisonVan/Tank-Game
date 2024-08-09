@@ -66,9 +66,9 @@ public class Bullet {
     // Method to apply damage
     public void applyDamageToTank(Tank tank) {
         if (firingTank.isDamageBoostActive()) {
-            tank.takeDamage(20); // Apply boosted damage
+            tank.takeDamage(50); // Apply boosted damage
         } else {
-            tank.takeDamage(40); // Apply normal damage
+            tank.takeDamage(30); // Apply normal damage
         }
     }
 }

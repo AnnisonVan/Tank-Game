@@ -41,6 +41,8 @@ public class GameWorld extends JPanel implements Runnable {
 
     @Override
     public void run() {
+        Sound bg = ResourceManager.getSound("bg");
+        bg.stop();
         try {
             while (true) {
                 this.tick++;
@@ -322,21 +324,26 @@ public class GameWorld extends JPanel implements Runnable {
         // Draw background image
         this.renderFloor(buffer);
 
+        // Create a copy of gObjs to avoid ConcurrentModificationException
+        List<Object> gObjsCopy;
         synchronized (gObjs) {
-            for (Object o : gObjs) {
-                if (o instanceof Tank tank) {
-                    tank.drawImage(buffer);
-                } else if (o instanceof Health h) {
-                    h.drawImage(buffer);
-                } else if (o instanceof BreakableWall bw) {
-                    bw.drawImage(buffer);
-                } else if (o instanceof Speed speed) {
-                    speed.drawImage(buffer);
-                } else if (o instanceof Wall w) {
-                    w.drawImage(buffer);
-                } else if (o instanceof Damage d){
-                    d.drawImage(buffer);
-                }
+            gObjsCopy = new ArrayList<>(gObjs);
+        }
+
+        // Iterate over the copy to draw objects
+        for (Object o : gObjsCopy) {
+            if (o instanceof Tank tank) {
+                tank.drawImage(buffer);
+            } else if (o instanceof Health h) {
+                h.drawImage(buffer);
+            } else if (o instanceof BreakableWall bw) {
+                bw.drawImage(buffer);
+            } else if (o instanceof Speed speed) {
+                speed.drawImage(buffer);
+            } else if (o instanceof Wall w) {
+                w.drawImage(buffer);
+            } else if (o instanceof Damage d){
+                d.drawImage(buffer);
             }
         }
 
@@ -359,5 +366,6 @@ public class GameWorld extends JPanel implements Runnable {
         // Display minimap
         this.displayMiniMap(g2);
     }
+
 
 }

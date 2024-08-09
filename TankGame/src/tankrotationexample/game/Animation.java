@@ -31,6 +31,11 @@ public class Animation {
         }
     }
 
+    private static void loadAnims(){
+        String baseFormat = "animations/%s_%04s.png";
+
+    }
+
     public void render(Graphics g) {
         if(this.running) {
             g.drawImage(frames.get(currentFrame), (int)x, (int)y, null);

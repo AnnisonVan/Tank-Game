@@ -4,24 +4,40 @@ import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class ResourceManager {
     private final static Map<String, BufferedImage> sprites = new HashMap<>();
     private final static Map<String, Sound> sounds = new HashMap<>();
     private final static Map<String, List<BufferedImage>> animations = new HashMap<>();
+    private final static Map<String, Integer> animInfo = new HashMap<>(){{
+        put("bullethit", 24);
+        put("bulletshoot", 23);
+        put("pickup",31);
+        put("explosion", 7);
+        put("rocketflame",16);
+        put("rockethit",32);
+    }};
 
     public static void init() throws IOException {
         try {
             initSprites();
             loadSounds();
-            initAnimations();
+            loadAnimations();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static void loadAnimations() {
+        String baseFormat = "animations/%s/%s_%04s.png";
+        ResourceManager.animInfo.forEach((animationName, frameCount) -> {
+            List<BufferedImage> frames = new ArrayList<>(frameCount);
+            for (int i = 0; i < frameCount; i++) {
+                String spritePath = String.format(baseFormat, animationName, animationName, i);
+                System.out.println(spritePath);
+            }
+        });
     }
 
     private static void initSprites() throws IOException {
@@ -74,10 +90,6 @@ public class ResourceManager {
         }
     }
 
-
-    private static void initAnimations() throws IOException {
-        // Initialize animations
-    }
 
     public static BufferedImage getSprite(String name) {
         if(!ResourceManager.sprites.containsKey(name)) {
