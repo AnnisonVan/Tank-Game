@@ -26,9 +26,28 @@ Go into terminal and run the cmd, git clone https://github.com/csc413-SFSU-SU202
 Then cd into the project and open it into an IDE
 
 ## Steps to Build your Project:
+If your project is not already open, go to File > Open....
+Navigate to the project directory C:\Users\Annison\IdeaProjects\csc413-tankgame-AnnisonVan.
+Select the project folder and click OK to open it.
+Ensure Project is Loaded Correctly:
 
+Wait for IntelliJ to index the project and resolve dependencies. This might take a moment.
+Configure Project SDK (if not already set):
+
+Go to File > Project Structure.
+Under Project Settings > Project, make sure the Project SDK is set to Java 22.
+If not, click New... and configure the path to your Java 22 installation.
+Click Apply and then OK.
+Build the Project:
+
+From the top menu, select Build > Build Project.
+Alternatively, you can use the shortcut Ctrl + F9 (Windows/Linux) or Cmd + F9 (macOS).
+IntelliJ will compile the project files. Watch the Build window for progress and check for any errors.
  
 ## Steps to run your Project:
+To run the JAR file you can navigate to the jar file under the csc413-tankgame-AnnisonVan
+click on the folder jar, right click on TankGame.jar
+Click on "Run 'TankGame.jar'"
 
 ## Controls to play your Game:
 
