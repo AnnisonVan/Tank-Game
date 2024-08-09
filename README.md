@@ -18,11 +18,15 @@ The jar folder will be used to store the built jar of your term-project.
 
 ## Version of Java Used: 22
 
-## IDE used: intellij
+## IDE used: Intellij
 
 ## Steps to Import project into IDE:
+Go into terminal and run the cmd, git clone https://github.com/csc413-SFSU-SU2024/csc413-tankgame-AnnisonVan.git
+
+Then cd into the project and open it into an IDE
 
 ## Steps to Build your Project:
+
  
 ## Steps to run your Project:
 
