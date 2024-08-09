@@ -108,7 +108,7 @@ public class Launcher {
         }
         (new Launcher()).initUIComponents();
         Sound bg = ResourceManager.getSound("bg");
-        bg.loopContinuously();
-        bg.play();
+        //bg.loopContinuously();
+        //bg.play();
     }
 }

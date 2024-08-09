@@ -13,8 +13,8 @@ public class ResourceManager {
     private final static Map<String, Integer> animInfo = new HashMap<>(){{
         put("bullethit", 24);
         put("bulletshoot", 23);
-        put("pickup",31);
-        put("explosion", 7);
+        put("powerpick",31);
+        put("explosion_lg", 7);
         put("rocketflame",16);
         put("rockethit",32);
     }};
@@ -30,12 +30,17 @@ public class ResourceManager {
     }
 
     private static void loadAnimations() {
-        String baseFormat = "animations/%s/%s_%04s.png";
+        String baseFormat = "animations/%s/%s_%04d.png";
         ResourceManager.animInfo.forEach((animationName, frameCount) -> {
             List<BufferedImage> frames = new ArrayList<>(frameCount);
-            for (int i = 0; i < frameCount; i++) {
-                String spritePath = String.format(baseFormat, animationName, animationName, i);
-                System.out.println(spritePath);
+            try {
+                for (int i = 0; i < frameCount; i++) {
+                    String spritePath = String.format(baseFormat, animationName, animationName, i);
+                    frames.add(loadSprite(spritePath));
+                }
+                ResourceManager.animations.put(animationName, frames);
+            }catch (IOException e){
+                throw new RuntimeException(e);
             }
         });
     }

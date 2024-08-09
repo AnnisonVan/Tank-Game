@@ -29,6 +29,7 @@ public class GameWorld extends JPanel implements Runnable {
     private long tick = 0;
     ArrayList gObjs = new ArrayList();
     private final List<Bullet> bullets = new ArrayList<>();
+    List<Animation> anims = new ArrayList<>();
 
     /**
      * Constructs the GameWorld.
@@ -46,6 +47,10 @@ public class GameWorld extends JPanel implements Runnable {
         try {
             while (true) {
                 this.tick++;
+
+                for (int i = 0; i < this.anims.size(); i++) {
+                    this.anims.get(i).update();
+                }
                 // Update tanks and their bullets
                 t1.update();
                 t2.update();
@@ -310,6 +315,14 @@ public class GameWorld extends JPanel implements Runnable {
 
         bullets.removeAll(bulletsToRemove);
     }
+
+    public void renderFrame(){
+        Graphics2D buffer = (Graphics2D) world.getGraphics();
+        for (int i = 0; i < this.anims.size(); i++) {
+            this.anims.get(i).render(buffer);
+        }
+    }
+
 
     @Override
     public void paintComponent(Graphics g) {
